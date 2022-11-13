@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from sklearn.neighbors import NearestNeighbors
 import numpy as np
 
-class NetVLAD(nn.Module):
+class NetVLADLayer(nn.Module):
     """This class implement the NetVLAD layer using pytorch.
     This would be suitable to be plus into any CNNs.
     
@@ -43,7 +43,7 @@ class NetVLAD(nn.Module):
             x = F.normalize(x, p=2, dim =1)
         
         x_flatten = x.view(N,C, -1)
-        
+
         soft_assignment = self.conv(x).view(N, self.n_vocabs, -1) 
         soft_assignment = F.softmax(soft_assignment, dim = 1)
 
@@ -57,6 +57,3 @@ class NetVLAD(nn.Module):
                 .expand(x_flatten.size()(-1), -1, -1)\
                 .permute(1,2,0).unsqueeze(0)
             res = x_flatten
-
-
-

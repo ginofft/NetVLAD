@@ -16,7 +16,7 @@ class NetVLADLayer(nn.Module):
 
     """
     def __init__(self, n_vocabs, k, normalize = True):
-        super(NetVLAD, self).__init__()
+        super(NetVLADLayer, self).__init__()
         self.n_vocabs = n_vocabs
         self.k = k
         self.normalize = normalize

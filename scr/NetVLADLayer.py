@@ -46,7 +46,7 @@ class NetVLADLayer(nn.Module):
         soft_assignment = self.conv(x).view(N, self.n_vocabs, -1) 
         soft_assignment = F.softmax(soft_assignment, dim = 1)
 
-        vlad = torch.zeros([N, self.n_vocabs, c],
+        vlad = torch.zeros([N, self.n_vocabs, C],
                         dtype = x.dtype,
                         layout = x.layout
                         device = x.device)

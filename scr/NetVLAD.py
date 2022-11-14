@@ -50,7 +50,7 @@ class NetVLADLayer(nn.Module):
                         dtype = x.dtype,
                         layout = x.layout
                         device = x.device)
-
+        
         for i in range(self.n_vocabs):
             vocab_tensor = self.vocabs[i:i+1]\
                 .expand(x_flatten.size()(-1), -1, -1)\

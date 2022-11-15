@@ -65,7 +65,7 @@ class NetVLAD(nn.Module):
         self.NetVLAD = net_vlad
 
     def forward(self, x):
-        x = self.base_model(x)
+        x = self.encoder(x)
         embedded_x = self.NetVLAD(x)
         return embedded_x
 

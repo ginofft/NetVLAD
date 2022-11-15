@@ -83,3 +83,4 @@ def pairs_from_similarity_matrix(sim, n_results):
         for j in range(n_results):
             pairs.append((i, idx[i,n_col-j]))
     return pairs
+    

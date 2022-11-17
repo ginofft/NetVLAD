@@ -21,13 +21,8 @@ parser = argparse.ArgumentParser()
 def train(epoch):
     epoch_loss = 0
     startIter = 1
-
-    if opt.cacheRefreshRate > 0:
-        subsetN = ceil(len(train_set) / opt.cacheRefreshRate)
-        subsetIdx = np.array_split(np.arrange(len(train_set)), subsetN)
-    else:
-        subsetN = 1
-        subsetIdx = [np.arrange(len(train_set))]
+    subsetN = 1
+    subsetIdx = [np.arrange(len(train_set))]
     
     nBatches = (len(train_set) + opt.batchSize -1 ) // opt.batchSize
 
@@ -39,16 +34,37 @@ def train(epoch):
         print('Allocated: ', torch.cuda.memory_allocated())
         print('Cached: ', torch.cuda.memory_cached())
         model.train()
-        for iteration, (query, positive, negatives, negCound, indices) in \
+        for iteration, (query, positive, negatives, negCounts, indices) in \
             enumerate(training_data_loader, startIter):
             B, C, H, W = query.shape
             nNeg = torch.sum(negCounts)
             input = torch.cat([query, positive, negatives])
 
             input = input.to(device)
-            
+            image_encoding = model.encoder(input)
+            vlad_encoding = model.VLAD(image_encoding)
 
-if __name__ == '__main__':
+            vladQ, vladP, vladN = torch.split(vlad_encoding, [B, B, nNeg])
+
+            optimizer.zero_grad()
+            loss = 0
+            for i, negCount in enumerate(negCounts):
+                for n in range(negCount):
+                    negIx = (torch.sum(negCounts[:i]+n).item())
+                    loss += criterion(vladQ[i:i+1], vladP[i:i+1], vladN[negIx:negIx:+1])
+            
+            loss /= nNeg.float().to(device)
+            loss.backward()
+            optimizer.step()
+            del input, image_encoding, vlad_encoding, vladQ, vladP, vladN
+            del query, positive, negatives
+
+            batch_loss = loss.item()
+            epoch_loss += batch_loss
+
+            if iteration % 50 == 0 or nBatches <= 10:
+                print("")
+
     opt = parser
     cuda = not opt.nocuda
     if cuda and not torch.cuda.is_available():

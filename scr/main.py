@@ -34,16 +34,20 @@ def train(epoch):
     for subIter in range(subsetN):
         print('===> Building Cache')
         model.eval()
-        train_set.cache = join(opt.cachePath, train_set.whichSet + '_feat_cache.hdf5')
-        with h5py.File(train_set.cache, mode = 'w') as h5:
-            pool_size = encoder_dim
-            if opt.pooling.lower() == 'netvlad': pool_size *= opt.n_clusters
-            h5feat = h5.create_dataset("feature",
-                [len(whole_train_set), pool_size],
-                dtype = np.float32)
-            with torch.no_grad():
-                for iteration, (input, indices) in enumerate(whole_training_data_loader, 1):
-                    
+        # TODO: add cache
+
+        print('Allocated: ', torch.cuda.memory_allocated())
+        print('Cached: ', torch.cuda.memory_cached())
+        model.train()
+        for iteration, (query, positive, negatives, negCound, indices) in \
+            enumerate(training_data_loader, startIter):
+            B, C, H, W = query.shape
+            nNeg = torch.sum(negCounts)
+            input = torch.cat([query, positive, negatives])
+
+            input = input.to(device)
+            
+
 if __name__ == '__main__':
     opt = parser
     cuda = not opt.nocuda

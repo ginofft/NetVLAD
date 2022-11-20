@@ -63,9 +63,28 @@ def train(epoch):
             epoch_loss += batch_loss
 
             if iteration % 50 == 0 or nBatches <= 10:
-                print("")
+                print("==> Epoch[{}]({}/{}): Loss: {:.4f}".format(epoch, iteration,
+                    nBatches, batch_loss), flush=True)
+                writer.add_scalar('Train/Loss', batch_loss, 
+                    ((epoch-1)*nBatches)+iteration)
+                print('Allocated: ',torch.cuda.memory_allocated())
+                print('Cahced: ', torch.cuda.memory_cached)
+        
+        startIter += len(training_data_loader)
+        del training_data_loader, loss
+        optimizer.zero_grad()
+        torch.cuda.empty_cache()
+        remove(train_set.cache)
+    
+    avg_loss = epoch_loss / nBatches
 
-    opt = parser
+    print("===> Epoch {} Complete: Avg. Loss: {:.4f}".format(epoch, avg_loss), flush=True)
+
+    writer.add_scalar('Train/AvgLoss', avg_loss, epoch)
+
+
+if __name__ == '__main__':
+    opt = parser.parse_args()
     cuda = not opt.nocuda
     if cuda and not torch.cuda.is_available():
         raise Exception("No GPU found, please run with --nocuda")

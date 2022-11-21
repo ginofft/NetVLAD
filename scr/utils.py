@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import cv2
 import numpy as np
+from PIL import Image
 import h5py
 
 def plot_images(imgs, titles=None, cmaps='gray', dpi=100, pad=.5,

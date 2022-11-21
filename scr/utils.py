@@ -37,19 +37,14 @@ def plot_images(imgs, titles=None, cmaps='gray', dpi=100, pad=.5,
             ax[i].set_title(titles[i])
     fig.tight_layout(pad=pad)
 
-def read_image(path: Path, grayscale=False):
+def read_image(path: Path):
     """This function read an image from a path.
-    The read is perform using opencv.
+    The read is perform using PIL.Image (cause PyTorch).
     """
-    if grayscale:
-        mode = cv2.IMREAD_GRAYSCALE
-    else:
-        mode = cv2.IMREAD_COLOR
-    image = cv2.imread(str(path), mode)
+
+    image = Image.open(path)
     if image is None:
         raise ValueError(f'Cannot read image {path}.')
-    if not grayscale and len(image.shape) == 3:
-        image = image[:, :, ::-1]  # BGR to RGB
     return image
 
 def plot_retrievals_images(retrieval, query_dir:Path, db_dir: Path):

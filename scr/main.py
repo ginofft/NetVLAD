@@ -19,68 +19,67 @@ from NetVLAD import NetVLAD, NetVLADLayer
 parser = argparse.ArgumentParser()
 
 def train(epoch):
-    epoch_loss = 0
-    startIter = 1
-    subsetN = 1
-    subsetIdx = [np.arrange(len(train_set))]
-    
-    nBatches = (len(train_set) + opt.batchSize -1 ) // opt.batchSize
+  epoch_loss = 0
+  startIter = 1
+  subsetN = 1
+  subsetIdx = [np.arange(len(dataset))]
 
-    for subIter in range(subsetN):
-        print('===> Building Cache')
-        model.eval()
-        # TODO: add cache
+  nBatches = (len(dataset) + batchSize -1) // batchSize
 
+  for subIter in range(subsetN):
+    model.eval()
+    model.train()
+
+    sub_train_set = Subset(dataset=dataset, indices = subsetIdx[subIter])
+    dataloader = DataLoader(dataset=sub_train_set, num_workers = 0, 
+                            batch_size = batchSize, shuffle = True,
+                            collate_fn = collate_fn)
+    for iteration, (query, positive, negative, negCounts, indices) in \
+      enumerate(dataloader, startIter):
+
+      B, C, H, W = query.shape
+      nNeg = torch.sum(negCounts)
+      input = torch.cat([query, positive, negative])
+
+      input = input.to(device)
+      image_encoding = model.encoder(input)
+      vlad_encoding = model.vlad(image_encoding)
+
+      vladQ, vladP, vladN = torch.split(vlad_encoding, [B, B, nNeg])
+
+      optimizer.zero_grad()
+
+      loss = 0
+      for i, negCount in enumerate(negCounts):
+        for n in range(negCount):
+          negIx = (torch.sum(negCounts[:i]) + n).item()
+          loss += criterion(vladQ[i:i+1], vladP[i:i+1], vladN[negIx:negIx+1])
+
+      loss /= nNeg.float().to(device)
+
+      loss.backward()
+      optimizer.step()
+
+      del input, image_encoding, vlad_encoding, vladQ, vladP, vladN
+      del query, positive, negative
+
+      batch_loss = loss.item()
+      epoch_loss += batch_loss
+
+      if iteration % 50 == 0 or nBatches <= 10:
+        print("Epoch[{}]({}/{}): Loss: {:.4f}".format(epoch, iteration,
+                                                           nBatches, batch_loss), flush=True)
         print('Allocated: ', torch.cuda.memory_allocated())
-        print('Cached: ', torch.cuda.memory_cached())
-        model.train()
-        for iteration, (query, positive, negatives, negCounts, indices) in \
-            enumerate(training_data_loader, startIter):
-            B, C, H, W = query.shape
-            nNeg = torch.sum(negCounts)
-            input = torch.cat([query, positive, negatives])
+        print('Cached: ', torch.cuda.memory_reserved())
 
-            input = input.to(device)
-            image_encoding = model.encoder(input)
-            vlad_encoding = model.VLAD(image_encoding)
+    startIter += len(dataloader)
+    del dataloader, loss
+    optimizer.zero_grad()
+    torch.cuda.empty_cache()
+  avg_loss = epoch_loss / nBatches
+  print("---> Epoch {} complete: Avg. Loss: {:.4f}".format(epoch, avg_loss),
+        flush=True)
 
-            vladQ, vladP, vladN = torch.split(vlad_encoding, [B, B, nNeg])
-
-            optimizer.zero_grad()
-            loss = 0
-            for i, negCount in enumerate(negCounts):
-                for n in range(negCount):
-                    negIx = (torch.sum(negCounts[:i]+n).item())
-                    loss += criterion(vladQ[i:i+1], vladP[i:i+1], vladN[negIx:negIx:+1])
-            
-            loss /= nNeg.float().to(device)
-            loss.backward()
-            optimizer.step()
-            del input, image_encoding, vlad_encoding, vladQ, vladP, vladN
-            del query, positive, negatives
-
-            batch_loss = loss.item()
-            epoch_loss += batch_loss
-
-            if iteration % 50 == 0 or nBatches <= 10:
-                print("==> Epoch[{}]({}/{}): Loss: {:.4f}".format(epoch, iteration,
-                    nBatches, batch_loss), flush=True)
-                writer.add_scalar('Train/Loss', batch_loss, 
-                    ((epoch-1)*nBatches)+iteration)
-                print('Allocated: ',torch.cuda.memory_allocated())
-                print('Cahced: ', torch.cuda.memory_cached)
-        
-        startIter += len(training_data_loader)
-        del training_data_loader, loss
-        optimizer.zero_grad()
-        torch.cuda.empty_cache()
-        remove(train_set.cache)
-    
-    avg_loss = epoch_loss / nBatches
-
-    print("===> Epoch {} Complete: Avg. Loss: {:.4f}".format(epoch, avg_loss), flush=True)
-
-    writer.add_scalar('Train/AvgLoss', avg_loss, epoch)
 
 
 if __name__ == '__main__':

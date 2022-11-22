@@ -48,8 +48,8 @@ class NetVLADLayer(nn.Module):
         soft_assignment = self.conv(x).view(N, self.n_vocabs, -1) 
         soft_assignment = F.softmax(soft_assignment, dim = 1)
 
-        residual = x_flatten.expand(self.num_clusters, -1, -1, -1).permute(1, 0, 2, 3) - \
-            self.centroids.expand(x_flatten.size(-1), -1, -1).permute(1, 2, 0).unsqueeze(0)
+        residual = x_flatten.expand(self.n_vocabs, -1, -1, -1).permute(1, 0, 2, 3) - \
+            self.vocabs.expand(x_flatten.size(-1), -1, -1).permute(1, 2, 0).unsqueeze(0)
         residual *= soft_assignment.unsqueeze(2)
         vlad = residual.sum(dim=-1)
 
@@ -57,15 +57,3 @@ class NetVLADLayer(nn.Module):
         vlad = vlad.view(x.size(0), -1)  # flatten
         vlad = F.normalize(vlad, p=2, dim=1)  # L2 normalize
         return vlad
-
-class NetVLAD(nn.Module):
-    def __init__(self, encoder, net_vlad):
-        super(NetVLAD, self).__init__()
-        self.encoder = encoder
-        self.NetVLAD = net_vlad
-
-    def forward(self, x):
-        x = self.encoder(x)
-        embedded_x = self.NetVLAD(x)
-        return embedded_x
-

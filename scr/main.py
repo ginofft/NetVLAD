@@ -18,19 +18,19 @@ from NetVLAD import NetVLAD, NetVLADLayer
 
 parser = argparse.ArgumentParser()
 
-def train(epoch):
+def train(epoch, trainset):
   epoch_loss = 0
   startIter = 1
   subsetN = 1
-  subsetIdx = [np.arange(len(dataset))]
+  subsetIdx = [np.arange(len(trainset))]
 
-  nBatches = (len(dataset) + batchSize -1) // batchSize
+  nBatches = (len(trainset) + batchSize -1) // batchSize
 
   for subIter in range(subsetN):
     model.eval()
     model.train()
 
-    sub_train_set = Subset(dataset=dataset, indices = subsetIdx[subIter])
+    sub_train_set = Subset(dataset=trainset, indices = subsetIdx[subIter])
     dataloader = DataLoader(dataset=sub_train_set, num_workers = 0, 
                             batch_size = batchSize, shuffle = True,
                             collate_fn = collate_fn)
@@ -79,6 +79,7 @@ def train(epoch):
   avg_loss = epoch_loss / nBatches
   print("---> Epoch {} complete: Avg. Loss: {:.4f}".format(epoch, avg_loss),
         flush=True)
+  return avg_loss
 
 
 
@@ -162,3 +163,26 @@ if __name__ == '__main__':
                     break
         print('=> Best Recall@5: {:.4f}'.format(best_score), flush=True)
         writer.close()
+
+
+
+#==========================
+
+#Parameters
+batchSize = 8
+nEpochs = 50
+not_improved = 0
+best_score = 0
+startEpoch = 9
+#loading model
+#startEpoch = load_checkpoint()
+#Traning
+for epoch in range(startEpoch+1, nEpochs+1):
+  epoch_loss = train(epoch, trainset)
+  if (epoch % 10) == 0:
+    save_checkpoint({
+        'epoch': epoch,
+        'state_dict': model.state_dict(),
+        'loss': epoch_loss,
+        'optimizer': optimizer.state_dict(),
+    }, cp_dir, 'epoch{}.pth.tar'.format(epoch))

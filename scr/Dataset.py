@@ -4,6 +4,7 @@ import numpy as np
 import collections  
 
 from torchvision import transforms
+from torch.utils.data.dataloader import default_collate
 
 from .utils import read_image
 

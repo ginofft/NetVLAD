@@ -15,6 +15,7 @@ from tensorboardX import SummaryWriter
 import h5py
 import numpy as np
 from NetVLAD import NetVLAD, NetVLADLayer
+from Dataset import collate_fn
 
 parser = argparse.ArgumentParser()
 
@@ -80,7 +81,6 @@ def train(epoch, trainset):
   print("---> Epoch {} complete: Avg. Loss: {:.4f}".format(epoch, avg_loss),
         flush=True)
   return avg_loss
-
 
 
 if __name__ == '__main__':

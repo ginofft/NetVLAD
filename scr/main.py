@@ -82,6 +82,19 @@ def train(epoch, trainset):
         flush=True)
   return avg_loss
 
+def save_checkpoint(state, out_path:Path, filename='netvlad.pth.tar'):
+  model_out_path = out_path / filename
+  torch.save(state, model_out_path)
+
+def load_checkpoint(model, optimizer, path):
+  checkpoint = torch.load(path)
+  epoch = checkpoint['epoch']
+  loss = checkpoint['loss']
+  model.load_state_dict(checkpoint['state_dict'])
+  model = model.to(device)
+  optimizer.load_state_dict(checkpoint['optimizer'])
+  print("=> loaded checkpoint '{}' (epoch {})".format(True, epoch))
+  return epoch
 
 if __name__ == '__main__':
     opt = parser.parse_args()

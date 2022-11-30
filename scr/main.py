@@ -181,6 +181,7 @@ if __name__ == '__main__':
 
 #==========================
 
+
 #Parameters
 batchSize = 8
 nEpochs = 50

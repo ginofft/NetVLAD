@@ -200,3 +200,12 @@ for epoch in range(startEpoch+1, nEpochs+1):
         'loss': epoch_loss,
         'optimizer': optimizer.state_dict(),
     }, cp_dir, 'epoch{}.pth.tar'.format(epoch))
+
+def query(model,
+          query_dir: Path, 
+          features: Path,
+          out_path: Optional[Path]=None,
+          n_result=10):
+  
+  query_names = [str(ref.relative_to(query_dir)) for ref in query_dir.iterdir()]
+  query_set = TripletDataset()

@@ -1,4 +1,4 @@
-import numpu as np
+import numpy as np
 
 def train(epoch):
     epoch_loss = 0

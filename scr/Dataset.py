@@ -104,3 +104,4 @@ def collate_fn(batch):
     indices = list(itertools.chain(*indices))
 
     return query, positive, negatives, negCounts, indices
+    

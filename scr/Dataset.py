@@ -8,6 +8,7 @@ from torch.utils.data.dataloader import default_collate
 
 from .utils import read_image
 
+#naive Triplet - Its fucking suck
 class TripletDataset(torch.utils.data.Dataset):
     default_conf = {
       'globs': ['*.jpg', '*.png', '*.jpeg', '*.JPG', '*.PNG'],
@@ -35,10 +36,12 @@ class TripletDataset(torch.utils.data.Dataset):
         paths = sorted(list(set(paths))) 
         self.names = [i.relative_to(root).as_posix() for i in paths]
 
-        self.idx_dict = collections.defaultdict(list)
         for i,name in enumerate(self.names):
             dir = str(Path(name).parent)
-            self.idx_dict[dir].append(i)
+            if dir not in self.idx_dict:
+                self.idx_dict[dir] = i
+            else:
+                self.idx_dict[dir].append(i)
 
     def __getitem__(self, idx):
         #TODO use cache for faster getitem ??
@@ -76,6 +79,99 @@ class TripletDataset(torch.utils.data.Dataset):
     
     def __len__(self):
         return len(self.names)
+
+#Image dataset used with BatchHardTripletSampler
+class ImageDataset(torch.utils.data.Dataset):
+    default_conf = {
+      'globs': ['*.jpg', '*.png', '*.jpeg', '*.JPG', '*.PNG'],
+      'grayscale': False,
+      'interpolation': 'cv2_area'
+    }
+    default_preprocessing = transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(256),
+        transforms.ToTensor(),
+        transforms.Normalize(mean = [0.485, 0.456, 0.406],
+                             std = [0.229, 0.224, 0.225]) 
+    ])
+    def __init__(self, root, input_transforms = default_preprocessing):
+        super().__init__()
+        self.root = root
+        self.input_transforms = input_transforms
+        paths = []
+        for g in self.default_conf['globs']:
+            paths += list(Path(root).glob('**/'+g)) #read paths with file following 'globs'
+        paths = sorted(list(set(paths))) 
+        self.names = [i.relative_to(root).as_posix() for i in paths]
+
+        folders = [folder.relative_to(root).as_posix() for folder in root.iterdir()]
+        temp_dict = {}
+        for i, folder in enumerate(folders):
+          temp_dict[folder] = i
+        
+        self.idx_dict = {}
+        for i, name in enumerate(self.names):
+          dir = str(Path(name).parent)
+          if temp_dict[dir] not in self.idx_dict:
+            self.idx_dict[temp_dict[dir]] = [i]
+          else:
+            self.idx_dict[temp_dict[dir]].append(i)
+
+    def __getitem__(self, idx):        
+        query =  read_image(self.root/self.names[idx])
+        label = str(Path(self.names[idx]).parent)       
+        if self.input_transforms:
+          query = self.input_transforms(query)         
+        return query, label
+      
+    def __len__(self):
+        return len(self.names)
+
+
+class BatchHardTripletSampler(torch.utils.data.BatchSampler):
+  def __init__(self, P, K, data_source, drop_last = True):
+    self.P = P
+    self.K = K
+    self.batch_size  =  self.P * self.K
+    self.data_source = data_source
+    self.drop_last = drop_last
+
+    self.pid2imgs = self.data_source.idx_dict
+
+  def __iter__(self):
+    '''Iterate over all images in the dataset. Then picks images according to Batch Hard.
+
+    P: no. pids in batch
+    K: no. images per pid
+
+    sort PIDs randomly and iterates over each pid once.
+    Fill batch by selecting K images for each PID;
+    When batch_size is reached, batch is yield.
+    '''
+
+    batch = [] 
+    P_perm = np.random.permutation(len(self.pid2imgs))
+    for p in P_perm:
+      indices = self.pid2imgs[p]
+      K_perm = np.random.permutation(len(indices))
+      if len(indices) < self.K:
+        K_perm = np.tile(K_perm, self.K // len(indices))
+        left = self.K - len(K_perm)
+        K_perm = np.concatenate(K_perm, K_perm[:left])
+      for k in range(self.K):
+        batch.append(indices[K_perm[k]])
+      
+      if len(batch) == self.batch_size:
+        yield batch
+        batch = []
+    if len(batch) > 1 and not self.drop_last:
+      yield batch
+
+  def __len__(self):
+    if self.drop_last:
+      return len(self.data_source)//self.P
+    else:
+      return (len(self. data_source)+self.batch_size -1)//self.P
 
 def collate_fn(batch):
     """Creates mini-batch tensors from the list of tuples (query, positive, negatives).

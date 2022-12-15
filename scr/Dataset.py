@@ -36,12 +36,13 @@ class TripletDataset(torch.utils.data.Dataset):
         paths = sorted(list(set(paths))) 
         self.names = [i.relative_to(root).as_posix() for i in paths]
 
+        self.idx_dict = {}
         for i,name in enumerate(self.names):
             dir = str(Path(name).parent)
             if dir not in self.idx_dict:
-                self.idx_dict[dir] = i
+              self.idx_dict[dir] = [i]
             else:
-                self.idx_dict[dir].append(i)
+              self.idx_dict[dir].append(i)
 
     def __getitem__(self, idx):
         #TODO use cache for faster getitem ??
@@ -79,7 +80,7 @@ class TripletDataset(torch.utils.data.Dataset):
     
     def __len__(self):
         return len(self.names)
-
+        
 #Image dataset used with BatchHardTripletSampler
 class ImageDataset(torch.utils.data.Dataset):
     default_conf = {

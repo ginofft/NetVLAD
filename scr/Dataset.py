@@ -80,54 +80,71 @@ class TripletDataset(torch.utils.data.Dataset):
     
     def __len__(self):
         return len(self.names)
-        
+
 #Image dataset used with BatchHardTripletSampler
 class ImageDataset(torch.utils.data.Dataset):
-    default_conf = {
-      'globs': ['*.jpg', '*.png', '*.jpeg', '*.JPG', '*.PNG'],
-      'grayscale': False,
-      'interpolation': 'cv2_area'
-    }
-    default_preprocessing = transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(256),
-        transforms.ToTensor(),
-        transforms.Normalize(mean = [0.485, 0.456, 0.406],
-                             std = [0.229, 0.224, 0.225]) 
-    ])
-    def __init__(self, root, input_transforms = default_preprocessing):
-        super().__init__()
-        self.root = root
-        self.input_transforms = input_transforms
-        paths = []
-        for g in self.default_conf['globs']:
-            paths += list(Path(root).glob('**/'+g)) #read paths with file following 'globs'
-        paths = sorted(list(set(paths))) 
-        self.names = [i.relative_to(root).as_posix() for i in paths]
-
-        folders = [folder.relative_to(root).as_posix() for folder in root.iterdir()]
-        temp_dict = {}
-        for i, folder in enumerate(folders):
-          temp_dict[folder] = i
-        
-        self.idx_dict = {}
-        for i, name in enumerate(self.names):
-          dir = str(Path(name).parent)
-          if temp_dict[dir] not in self.idx_dict:
-            self.idx_dict[temp_dict[dir]] = [i]
-          else:
-            self.idx_dict[temp_dict[dir]].append(i)
-
-    def __getitem__(self, idx):        
-        query =  read_image(self.root/self.names[idx])
-        label = str(Path(self.names[idx]).parent)       
-        if self.input_transforms:
-          query = self.input_transforms(query)         
-        return query, label
+  '''This class is the Image folder dataset to be used with Online Triplet Mining.
+    
+    Args:
+    ----------------------------------------------------------------------------
+    default_conf, default_preprocessing: 
+      - conf: standard stuff
+      - preprocessing: resize, center crop, to Tensor (from numpy), and normalize
+    self.root: Database folder, in which there are images folder 
+      -> each folder would be a class
+    self.names: array of Paths of image relative to root -> used to read images
+    self.labels: array of images' label
+  '''
+  default_conf = {
+    'globs': ['*.jpg', '*.png', '*.jpeg', '*.JPG', '*.PNG'],
+    'grayscale': False,
+    'interpolation': 'cv2_area'
+  }
+  default_preprocessing = transforms.Compose([
+      transforms.Resize(256),
+      transforms.CenterCrop(256),
+      transforms.ToTensor(),
+      transforms.Normalize(mean = [0.485, 0.456, 0.406],
+                            std = [0.229, 0.224, 0.225]) 
+  ])
+  def __init__(self, root, input_transforms = default_preprocessing):
+      super().__init__()
+      self.root = root
+      self.input_transforms = input_transforms
       
-    def __len__(self):
-        return len(self.names)
+      # Iterate over directories to get Images' path
+      paths = []
+      for g in self.default_conf['globs']:
+          paths += list(Path(root).glob('**/'+g)) #read paths with file following 'globs'
+      paths = sorted(list(set(paths))) 
+      self.names = [i.relative_to(root).as_posix() for i in paths]
 
+      # Iterate over folder, to get classes -> then numbered them
+      folders = [folder.relative_to(root).as_posix() for folder in root.iterdir()]
+      temp_dict = {}
+      for i, folder in enumerate(folders):
+        temp_dict[folder] = i
+      
+      # Create labels array
+      self.labels = np.zeros(len(self.names), dtype = int)
+      for i, name in enumerate(self.names):
+        dir = str(Path(name).parent)
+        self.labels[i] = temp_dict[dir]
+  
+  def __getitem__(self, idx):
+    ''' This function is due to Pytorch's Map-style dataset.
+    Currently return two element:
+      - query: TENSOR image of the index
+      - label: label of that image  
+    '''        
+    query =  read_image(self.root/self.names[idx])
+    label = self.labels[idx]       
+    if self.input_transforms:
+      query = self.input_transforms(query)         
+    return query, label
+    
+  def __len__(self):
+      return len(self.names)
 
 class BatchHardTripletSampler(torch.utils.data.BatchSampler):
   def __init__(self, P, K, data_source, drop_last = True):

@@ -6,13 +6,17 @@ import numpy as np
 
 class NetVLADLayer(nn.Module):
     """This class implement the NetVLAD layer using pytorch.
+    The ideas is mentioned in: https://arxiv.org/pdf/1511.07247.pdf
     This would be suitable to be plus into any CNNs.
     
     Args
     ------------------------------------------------------------------
     n_vocabs: number of visual words
     k: dimension of each visual word (descriptor vector)
-
+    normalize: whether or not to normalize input embedding
+    alpha: alpha as mentioned in the paper
+    vocabs: the vocabulary embedding -> learnable by a NN
+    conv: mapping conv layer from embedding -> netvlad vocabulary
     """
     def __init__(self, n_vocabs, k, alpha=100.0, normalize = True):
         super(NetVLADLayer, self).__init__()
@@ -20,6 +24,7 @@ class NetVLADLayer(nn.Module):
         self.k = k
         self.normalize = normalize
         self.alpha = alpha
+
         self.conv = nn.Conv2d(self.k, self.n_vocabs, kernel_size=(1,1), bias=False)
         self.vocabs = nn.Parameter(torch.rand(self.n_vocabs, self.k))
         self._init_params()
@@ -31,13 +36,16 @@ class NetVLADLayer(nn.Module):
         self.conv.bias = nn.Parameter(
             - self.alpha * self.vocabs.norm(dim=1)
         )
-      
 
     def forward(self, x):
         """This function forward output from a CNNs into NetVLAD layer
+        
         Args
         ----------------------------------------------------------
-        x: [N,C, w,h] - image embedding of the whole dataset
+        x: [N,C, w,h] - image embedding of the whole batch
+
+        Return:
+        vlad: [N, self.n_vocabs] - netvlad of the whole batch
         """
         N, C = x.size()[:2] 
         if self.normalize:

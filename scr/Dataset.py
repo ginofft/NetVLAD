@@ -9,8 +9,36 @@ from torch.utils.data.dataloader import default_collate
 
 from .utils import read_image
 
-#naive Triplet - Its fucking suck
 class TripletDataset(torch.utils.data.Dataset):
+    '''This class load data for triplet loss. 
+    Concretely, for an anchor image, it would load:
+      - query: anchor image
+      - positive: an positive image 
+      - negatives: nNeg negative image
+    The intuition is that, the positive image should be closer to anchor,
+    compared to nNeg negative images.
+
+    The folder structure should be:
+      - database folder
+          + class_1:
+              * class_1_img1
+              * class_1_img2
+              ...
+          + class_2:
+            * class_2_img1
+            * class_2_img2
+            ...
+    Args
+    ----------------------------------------------------------------------------
+    root: path of database folder
+    nNeg: no. negative images per anchor
+    input_transform: transformation done on the image
+    names: path of individual images
+    idx_dict: index dictionary:
+      - key: class name
+      - value: [index] index of images belonging to that class
+    '''
+
     default_conf = {
       'globs': ['*.jpg', '*.png', '*.jpeg', '*.JPG', '*.PNG'],
       'grayscale': False,
@@ -23,9 +51,10 @@ class TripletDataset(torch.utils.data.Dataset):
         transforms.Normalize(mean = [0.485, 0.456, 0.406],
                              std = [0.229, 0.224, 0.225]) 
     ])
-    def __init__(self, root, input_transforms = default_preprocessing, nNegSample=500,  nNeg=5):
+    def __init__(self, root,
+                 input_transforms = default_preprocessing,
+                 nNeg=5):
         super().__init__()
-        self.nNegSample = nNegSample
         self.nNeg = nNeg
         self.root = root
         self.input_transforms = input_transforms
@@ -46,41 +75,44 @@ class TripletDataset(torch.utils.data.Dataset):
               self.idx_dict[dir].append(i)
 
     def __getitem__(self, idx):
-        #TODO use cache for faster getitem ??
-        #Get positive indices
-        positive_dir = str(Path(self.names[idx]).parent)
-        positive_indices = np.array(self.idx_dict[positive_dir])
-        #TODO - better way to get negative indices 
-        #Get negative indices - 
-        negative_indices = []
+      '''
+      This method get:
+        - 1 query image (anchor) 
+        - 1 positive image 
+        - Nneg negative images
+        - indices: index of returrn images [anchor_idx, pos_idx] + [negative_indices]
+      '''
+      positive_dir = str(Path(self.names[idx]).parent)
+      positive_indices = np.array(self.idx_dict[positive_dir])
 
-        keys = set(self.idx_dict.keys()).difference(set([positive_dir]))
-        for key in keys:
-            negative_indices.extend(self.idx_dict[key])
-        negative_indices = np.array(negative_indices)
-        
-        #get query, positive and negative images
-        p_idx = np.random.choice(positive_indices, 1).item()
-        n_indices = np.random.choice(negative_indices, self.nNeg)
-        
-        query =  read_image(self.root/self.names[idx])
-        positive = read_image(self.root/self.names[p_idx])
-        
-        negatives = []
-        for indices in n_indices:
-            negatives.append(read_image(self.root/self.names[indices]))
+      negative_indices = []
+      keys = set(self.idx_dict.keys()).difference(set([positive_dir]))
+      for key in keys:
+          negative_indices.extend(self.idx_dict[key])
+      negative_indices = np.array(negative_indices)
+      
+      #get query, positive and negative images
+      p_idx = np.random.choice(positive_indices, 1).item()
+      n_indices = np.random.choice(negative_indices, self.nNeg)
+      
+      query =  read_image(self.root/self.names[idx])
+      positive = read_image(self.root/self.names[p_idx])
+      
+      negatives = []
+      for indices in n_indices:
+          negatives.append(read_image(self.root/self.names[indices]))
 
-        if self.input_transforms:
-          query = self.input_transforms(query)
-          positive = self.input_transforms(positive)
-          for i, neg in enumerate(negatives):
-            negatives[i] = self.input_transforms(neg)
+      if self.input_transforms:
+        query = self.input_transforms(query)
+        positive = self.input_transforms(positive)
+        for i, neg in enumerate(negatives):
+          negatives[i] = self.input_transforms(neg)
 
-        negatives = torch.stack(negatives, 0)
-        return query, positive, negatives, [idx, p_idx]+n_indices.tolist()
+      negatives = torch.stack(negatives, 0)
+      return query, positive, negatives, [idx, p_idx]+n_indices.tolist()
     
     def __len__(self):
-        return len(self.names)
+      return len(self.names)
         
 #Image dataset used with BatchHardTripletSampler
 class ImageDataset(torch.utils.data.Dataset):

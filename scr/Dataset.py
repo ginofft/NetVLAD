@@ -1,8 +1,6 @@
 import torch
 from pathlib import Path
 import numpy as np
-import collections  
-import random
 
 from torchvision import transforms
 from torch.utils.data.dataloader import default_collate

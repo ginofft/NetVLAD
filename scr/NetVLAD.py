@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sklearn.neighbors import NearestNeighbors
-import numpy as np
 
 class NetVLADLayer(nn.Module):
     """This class implement the NetVLAD layer using pytorch.

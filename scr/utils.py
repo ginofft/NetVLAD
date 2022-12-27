@@ -19,7 +19,7 @@ def plot_images(imgs, titles=None, cmaps='gray', dpi=100, pad=.5,
         cmaps = [cmaps] * n
 
     if adaptive:
-        ratios = [i.shape[1] / i.shape[0] for i in imgs]  # W / H
+        ratios = [i.size[0] / i.size[1] for i in imgs]  # W / H
     else:
         ratios = [4/3] * n
     figsize = [sum(ratios)*4.5, 4.5]
@@ -48,7 +48,7 @@ def read_image(path: Path):
         raise ValueError(f'Cannot read image {path}.')
     return image
 
-def plot_retrievals_images(retrieval, query_dir:Path, db_dir: Path):
+def plot_retrievals_images(retrieval,db_dir: Path, query_dir:Optional[Path] = None):
     """This function plots queries and retrieved images
     Args
     ----------------------------------------------------------------
@@ -65,9 +65,10 @@ def plot_retrievals_images(retrieval, query_dir:Path, db_dir: Path):
             db_refs.append(data)
 
     for i, query_ref in enumerate(query_refs):
-        query_img = [read_image(query_dir/ query_ref)]
+        if query_dir is not None:
+            query_img = [read_image(query_dir/ query_ref)]
+            plot_images(query_img, dpi=25)
         db_imgs = [read_image(db_dir/ r) for r in db_refs[i]]
-        plot_images(query_img, dpi=25)
         plot_images(db_imgs, dpi=25)
 
 def pairs_from_similarity_matrix(sim, n_results):
@@ -79,4 +80,3 @@ def pairs_from_similarity_matrix(sim, n_results):
         for j in range(n_results):
             pairs.append((i, idx[i,n_col-j]))
     return pairs
-    

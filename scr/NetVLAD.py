@@ -65,31 +65,3 @@ class NetVLADLayer(nn.Module):
         vlad = vlad.view(x.size(0), -1)  # flatten
         vlad = F.normalize(vlad, p=2, dim=1)  # L2 normalize
         return vlad
-
-def collate_fn(batch):
-    """Creates mini-batch tensors from the list of tuples (query, positive, negatives).
-    
-    Args:
-        data: list of tuple (query, positive, negatives). 
-            - query: torch tensor of shape (3, h, w).
-            - positive: torch tensor of shape (3, h, w).
-            - negative: torch tensor of shape (n, 3, h, w).
-    Returns:
-        query: torch tensor of shape (batch_size, 3, h, w).
-        positive: torch tensor of shape (batch_size, 3, h, w).
-        negatives: torch tensor of shape (batch_size, n, 3, h, w).
-    """
-
-    batch = list(filter (lambda x:x is not None, batch))
-    if len(batch) == 0: return None, None, None, None, None
-
-    query, positive, negatives, indices = zip(*batch)
-
-    query = default_collate(query)
-    positive = default_collate(positive)
-    negCounts = default_collate([x.shape[0] for x in negatives])
-    negatives = torch.cat(negatives, 0)
-    import itertools
-    indices = list(itertools.chain(*indices))
-
-    return query, positive, negatives, negCounts, indices

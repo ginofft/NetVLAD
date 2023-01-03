@@ -101,9 +101,10 @@ if __name__ == "__main__":
       pass #TODO SGD optimizer
 
     if opt.loadPath: #loading stuff
-      startEpoch, train_loss, val_loss = load_checkpoint(model, 
-                                                         optimizer, 
-                                                         opt.loadPath)
+      startEpoch, train_loss, val_loss = load_checkpoint(opt.loadPath,
+                                                        device,
+                                                        model, 
+                                                        optimizer)
     for epoch in range(startEpoch+1, opt.nEpochs+1):
       # train & validate
       epoch_train_loss = train(device, model, epoch,
@@ -143,9 +144,9 @@ if __name__ == "__main__":
         }, opt.savePath, 'epoch{}.pth.tar'.format(epoch))      
   else:  
     if opt.loadPath: #loading stuff
-      startEpoch, train_loss, val_loss = load_checkpoint(model, 
-                                                        optimizer, 
-                                                        opt.loadPath)
+      startEpoch, train_loss, val_loss = load_checkpoint(opt.loadPath, 
+                                                        device,
+                                                        model)
     else:
       raise Exception('Please point to a model using --loadPath')
 

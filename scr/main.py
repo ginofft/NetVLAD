@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -7,7 +8,8 @@ import torchvision.models as models
 from netvlad import NetVLADLayer
 from dataset import OnlineTripletImageDataset, ImageDataset
 from sampler import OnlineTripletSampler
-from utils import 
+from loss import OnlineTripletLoss
+
 
 parser = argparse.ArgumentParser(description = 'torch-netvlad-online_triplet_mining')
 #Hyper Parameters

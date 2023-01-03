@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image
 import h5py
 from typing import Optional
+import torch
 
 def plot_images(imgs, titles=None, cmaps='gray', dpi=100, pad=.5,
                 adaptive=True):
@@ -80,3 +81,19 @@ def pairs_from_similarity_matrix(sim, n_results):
         for j in range(n_results):
             pairs.append((i, idx[i,n_col-j]))
     return pairs
+
+def save_checkpoint(state, path:Path, filename='lastest.pth.tar'):
+  out_path = path / filename
+  torch.save(state, path / filename)
+
+def load_checkpoint(model, optimizer, device, path):
+  state = torch.load(path)
+  epoch = state['epoch']
+  train_loss = state['train_loss']
+  val_loss = state['val_loss']
+
+  model.load_state_dict(state['model'])
+  model = model.to(device)
+  optimizer.load_state_dict(state['optimizer'])
+  print("=> loaded checkpoint '{}' (epoch {})".format(True, epoch))
+  return epoch, train_loss, val_loss

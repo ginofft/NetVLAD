@@ -9,6 +9,7 @@ from netvlad import NetVLADLayer
 from dataset import OnlineTripletImageDataset, ImageDataset
 from sampler import OnlineTripletSampler
 from loss import OnlineTripletLoss
+from utils import save_checkpoint, load_checkpoint
 
 
 parser = argparse.ArgumentParser(description = 'torch-netvlad-online_triplet_mining')

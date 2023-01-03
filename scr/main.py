@@ -107,7 +107,9 @@ if __name__ == "__main__":
                                                          opt.loadPath)
     for epoch in range(startEpoch+1, opt.nEpochs+1):
       # train & validate
-      epoch_train_loss = train(epoch, train_set, opt.P, opt.K)
+      epoch_train_loss = train(device, model, epoch,
+                            train_set, opt.P, opt.K,
+                            criterion, optimizer)
       epoch_val_loss = validate(val_set, opt.P, opt.K)
       #saving stuff
       if (epoch_train_loss < train_loss): #lowest loss on train set

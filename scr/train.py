@@ -8,7 +8,7 @@ def train(device,
         P, K,
         criterion,
         optimizer):
-        
+
   sampler = OnlineTripletSampler(P=P, K=K, data_source = train_set, drop_last = True)
   dataloader = torch.utils.data.DataLoader(
       train_set, 
@@ -55,4 +55,43 @@ def train(device,
   del sampler, dataloader
   torch.cuda.empty_cache() #clear GPU RAM
   
+  return avg_loss
+
+def validate(device,
+            model,
+            val_set, 
+            P, K,
+            criterion):
+  sampler = OnlineTripletSampler(P=P, K=K, data_source = val_set, drop_last = True)
+  dataloader = torch.utils.data.DataLoader(
+      val_set, 
+      batch_sampler = sampler, 
+      num_workers = 2,
+      pin_memory = True
+  )
+  n_batches = len(dataloader)
+  
+  epoch_loss = 0
+  model.eval()
+  with torch.no_grad():     
+    for batch_id, (imgs, labels) in enumerate(dataloader):
+      #Compute netvlads embedding
+      imgs, labels = imgs.to(device), labels.to(device)
+      embeddings = model.encoder(imgs)
+      netvlads = model.netvlad(embeddings)
+
+      #Loss & Backprop
+      loss = criterion(netvlads, labels).to(device)
+      
+      batch_loss = loss.item()
+      epoch_loss += batch_loss
+      
+      #delete stuff to save RAM
+      del imgs, labels, embeddings, netvlads
+      del loss, batch_loss
+      avg_loss = epoch_loss / n_batches
+  print('----> Current validation loss: {:.4f}'.format(avg_loss))
+
+  del sampler, dataloader
+  torch.cuda.empty_cache()
   return avg_loss

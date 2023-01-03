@@ -7,10 +7,9 @@ import torchvision.models as models
 
 from netvlad import NetVLADLayer
 from dataset import OnlineTripletImageDataset, ImageDataset
-from sampler import OnlineTripletSampler
 from loss import OnlineTripletLoss
 from utils import save_checkpoint, load_checkpoint
-from train import train
+from train import train, validate
 
 parser = argparse.ArgumentParser(description = 'torch-netvlad-online_triplet_mining')
 #Hyper Parameters
@@ -110,7 +109,9 @@ if __name__ == "__main__":
       epoch_train_loss = train(device, model, epoch,
                             train_set, opt.P, opt.K,
                             criterion, optimizer)
-      epoch_val_loss = validate(val_set, opt.P, opt.K)
+      epoch_val_loss = validate(device, model, 
+                                val_set, opt.P, opt.K,
+                                criterion)
       #saving stuff
       if (epoch_train_loss < train_loss): #lowest loss on train set
         train_loss = epoch_train_loss

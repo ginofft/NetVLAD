@@ -11,7 +11,6 @@ from sampler import OnlineTripletSampler
 from loss import OnlineTripletLoss
 from utils import save_checkpoint, load_checkpoint
 
-
 parser = argparse.ArgumentParser(description = 'torch-netvlad-online_triplet_mining')
 #Hyper Parameters
 ##Sampler 
@@ -141,8 +140,8 @@ if __name__ == "__main__":
   else:  
     if opt.loadPath: #loading stuff
       startEpoch, train_loss, val_loss = load_checkpoint(model, 
-                                                         optimizer, 
-                                                         opt.loadPath)
+                                                        optimizer, 
+                                                        opt.loadPath)
     else:
       raise Exception('Please point to a model using --loadPath')
 

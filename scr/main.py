@@ -10,6 +10,7 @@ from dataset import OnlineTripletImageDataset, ImageDataset
 from loss import OnlineTripletLoss
 from utils import save_checkpoint, load_checkpoint
 from train import train, validate
+from query import query, calculate_netvlads
 
 parser = argparse.ArgumentParser(description = 'torch-netvlad-online_triplet_mining')
 #Hyper Parameters

@@ -86,7 +86,7 @@ def save_checkpoint(state, path:Path, filename='lastest.pth.tar'):
   out_path = path / filename
   torch.save(state, path / filename)
 
-def load_checkpoint(model, optimizer, device, path):
+def load_checkpoint(path, device, model, optimizer = None):
   state = torch.load(path)
   epoch = state['epoch']
   train_loss = state['train_loss']
@@ -94,6 +94,7 @@ def load_checkpoint(model, optimizer, device, path):
 
   model.load_state_dict(state['model'])
   model = model.to(device)
-  optimizer.load_state_dict(state['optimizer'])
+  if optimizer != None:
+    optimizer.load_state_dict(state['optimizer'])
   print("=> loaded checkpoint '{}' (epoch {})".format(True, epoch))
   return epoch, train_loss, val_loss

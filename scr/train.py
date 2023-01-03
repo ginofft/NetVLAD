@@ -1,7 +1,14 @@
 import torch
 from sampler import OnlineTripletSampler
 
-def train(model, epoch, train_set, P, K):
+def train(device, 
+        model, 
+        epoch, 
+        train_set, 
+        P, K,
+        criterion,
+        optimizer):
+        
   sampler = OnlineTripletSampler(P=P, K=K, data_source = train_set, drop_last = True)
   dataloader = torch.utils.data.DataLoader(
       train_set, 

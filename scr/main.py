@@ -1,211 +1,161 @@
 import argparse
-from math import log10, ceil
-import random, shutil, json
-
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
-from torch.autograd import Variable
-from torch.utils.data import DataLoader, SubsetRandomSampler
-from torch.utils.data.dataset import Subset
 import torchvision.models as models
-from tensorboardX import SummaryWriter
 
-import h5py
-import numpy as np
-from NetVLAD import NetVLAD, NetVLADLayer
-from Dataset import collate_fn
+from netvlad import NetVLADLayer
+from dataset import OnlineTripletImageDataset, ImageDataset
+from sampler import OnlineTripletSampler
+from utils import 
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(description = 'torch-netvlad-online_triplet_mining')
+#Hyper Parameters
+##Sampler 
+parser.add_argument('--P', type=int, default=4, 
+                    help='no. classes for Online Triplet Mining')
+parser.add_argument('--K', type=int, default=8, 
+                    help='no. images per class for Online Triplet Mining')
+##Optimizer
+parser.add_argument('--optim', type=str, default = 'Adam', 
+                    help='optimizer to use', choices=['SGD', 'Adam'])
+parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
+### SGD Scheduler params
+parser.add_argument('--lrStep', type=int, default = 5, 
+                    help='no. step before LR decay')
+parser.add_argument('--lrGamma', type=float, default=0.5, 
+                    help='Decay constant')
+##Loss
+parser.add_argument('--margin', type=float, default=0.1**0.5, 
+                    help='Margin for triplet loss')
+parser.add_argument('--tripletLoss', type=str, default='naive', 
+                    help='Type of triplet loss to use. There are three available: naive (random triplet), online triplet mining - hard variation, online triplet mining - semi-hard variation',
+                    choices=['naive', 'BatchAll', 'BatchHard'])
+##NetVLAD
+parser.add_argument('--n_vocabs', type=int, default=16, 
+                    help='no. netvlad vocabulary')
 
-def train(epoch, trainset):
-  epoch_loss = 0
-  startIter = 1
-  subsetN = 1
-  subsetIdx = [np.arange(len(trainset))]
+#Training Arguments 
+parser.add_argument('--nEpochs', type =  int, default = 500, help='no. epochs')
+parser.add_argument('--mode', type=str, default='train', 
+                    help='Traning mode or Testing(inference) mode', 
+                    choices=['train', 'test'])
+parser.add_argument('--trainPath', type=str, default='', 
+                    help='Path of training set')
+parser.add_argument('--validationPath', type=str, default='', 
+                    help='Path of validation set')
+parser.add_argument('--savePath', type=str, default='', 
+                    help='Path to save checkpoint to')
+parser.add_argument('--loadPath', type=str, default='', 
+                    help='Path to load checkpoint from - used for resume or testing')
+parser.add_argument('--saveEvery', type=int, default=25, 
+                    help='no. epoch before a save is created')
 
-  nBatches = (len(trainset) + batchSize -1) // batchSize
+#Inference Arguments
+parser.add_argument('--dbPath', type=str, default='', 
+                    help='Path to database folder (NOT training set folder)')
+parser.add_argument('--queryPath', type=str, default='',
+                    help='Path to query folder')
+parser.add_argument('--outPath', type=str, default='', 
+                    help="Path where to store: database's netvlads, query's netvlads and retrieval results")
 
-  for subIter in range(subsetN):
-    model.eval()
-    model.train()
+if __name__ == "__main__":
+  opt = parser.parse_args()
+  cuda = torch.cuda.is_available()
+  if cuda:
+    device =  torch.device("cuda")
+  else:
+    raise Exception("No GPU found, please get one")
+  #Setup model
+  encoder = models.vgg16()
+  encoder_k = 512 ##TODO
+  layers = list(encoder.features.children())[:-2]
 
-    sub_train_set = Subset(dataset=trainset, indices = subsetIdx[subIter])
-    dataloader = DataLoader(dataset=sub_train_set, num_workers = 0, 
-                            batch_size = batchSize, shuffle = True,
-                            collate_fn = collate_fn)
-    for iteration, (query, positive, negative, negCounts, indices) in \
-      enumerate(dataloader, startIter):
+  model = nn.Module()
+  encoder = nn.Sequential(*layers)
+  model.add_module('encoder', encoder)
 
-      B, C, H, W = query.shape
-      nNeg = torch.sum(negCounts)
-      input = torch.cat([query, positive, negative])
+  net_vlad = NetVLADLayer(n_vocabs = opt.n_vocabs, k = encoder_k)
+  model.add_module('netvlad', net_vlad)
 
-      input = input.to(device)
-      image_encoding = model.encoder(input)
-      vlad_encoding = model.vlad(image_encoding)
-
-      vladQ, vladP, vladN = torch.split(vlad_encoding, [B, B, nNeg])
-
-      optimizer.zero_grad()
-
-      loss = 0
-      for i, negCount in enumerate(negCounts):
-        for n in range(negCount):
-          negIx = (torch.sum(negCounts[:i]) + n).item()
-          loss += criterion(vladQ[i:i+1], vladP[i:i+1], vladN[negIx:negIx+1])
-
-      loss /= nNeg.float().to(device)
-
-      loss.backward()
-      optimizer.step()
-
-      del input, image_encoding, vlad_encoding, vladQ, vladP, vladN
-      del query, positive, negative
-
-      batch_loss = loss.item()
-      epoch_loss += batch_loss
-
-      if iteration % 50 == 0 or nBatches <= 10:
-        print("Epoch[{}]({}/{}): Loss: {:.4f}".format(epoch, iteration,
-                                                           nBatches, batch_loss), flush=True)
-        print('Allocated: ', torch.cuda.memory_allocated())
-        print('Cached: ', torch.cuda.memory_reserved())
-
-    startIter += len(dataloader)
-    del dataloader, loss
-    optimizer.zero_grad()
-    torch.cuda.empty_cache()
-  avg_loss = epoch_loss / nBatches
-  print("---> Epoch {} complete: Avg. Loss: {:.4f}".format(epoch, avg_loss),
-        flush=True)
-  return avg_loss
-
-def save_checkpoint(state, out_path:Path, filename='netvlad.pth.tar'):
-  model_out_path = out_path / filename
-  torch.save(state, model_out_path)
-
-def load_checkpoint(model, optimizer, path):
-  checkpoint = torch.load(path)
-  epoch = checkpoint['epoch']
-  loss = checkpoint['loss']
-  model.load_state_dict(checkpoint['state_dict'])
   model = model.to(device)
-  optimizer.load_state_dict(checkpoint['optimizer'])
-  print("=> loaded checkpoint '{}' (epoch {})".format(True, epoch))
-  return epoch
 
-if __name__ == '__main__':
-    opt = parser.parse_args()
-    cuda = not opt.nocuda
-    if cuda and not torch.cuda.is_available():
-        raise Exception("No GPU found, please run with --nocuda")
-    device = torch.device("cuda" if cuda else "cpu")
-    print("====> Loadiing dataset")
-    if opt.mode.lower() == 'train':
-        #TODO - load training dataset
-        pass
-    print("======> Building Model")
+  if opt.mode.lower() == 'train':
+    startEpoch = 0
+    val_loss = 1
+    train_loss = 1
 
-    encoder_dim = 512
-    encoder = models.vgg16()
-    layers = list(encoder.features.children())[:-2]
+    train_set = OnlineTripletImageDataset(opt.trainPath)
+    val_set = OnlineTripletImageDataset(opt.validationPath)
 
-    encoder = nn.Sequential(*layers)
-    model = nn.Module()
-    model.add_module('encoder', encoder)
+    if opt.tripletLoss.lower() == 'batchhard':
+      criterion = OnlineTripletLoss(margin = opt.margin, hard=True).to(device)
+    else:
+      criterion = OnlineTripletLoss(margin = opt.margin, hard=False).to(device)
+    if opt.optim.lower() =='adam':
+      optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), 
+                             lr = opt.lr)
+    else:
+      pass #TODO SGD optimizer
 
-    netVLAD = NetVLADLayer(16, encoder_dim)
-    model.add_module('VLAD', netVLAD)
+    if opt.loadPath: #loading stuff
+      startEpoch, train_loss, val_loss = load_checkpoint(model, 
+                                                         optimizer, 
+                                                         opt.loadPath)
+    for epoch in range(startEpoch+1, opt.nEpochs+1):
+      # train & validate
+      epoch_train_loss = train(epoch, train_set, opt.P, opt.K)
+      epoch_val_loss = validate(val_set, opt.P, opt.K)
+      #saving stuff
+      if (epoch_train_loss < train_loss): #lowest loss on train set
+        train_loss = epoch_train_loss
+        save_checkpoint({
+            'epoch': epoch,
+            'train_loss': epoch_train_loss,
+            'val_loss': epoch_val_loss,
+            'model': model.state_dict(),
+            'optimizer': optimizer.state_dict(),
+        }, opt.savePath, 'best_train.pth.tar')
 
-    isParallel = False
-    if opt.nGPU > 1 and torch.cuda.device_count() >1:
-        model.encoder = nn.DataParallel(model.encoder)
-        isParallel = True
+      if (epoch_val_loss < val_loss): #lowest loss on val set
+        val_loss = epoch_val_loss
+        save_checkpoint({
+            'epoch': epoch,
+            'train_loss': epoch_train_loss,
+            'val_loss': epoch_val_loss,
+            'model': model.state_dict(),
+            'optimizer': optimizer.state_dict(),
+        }, opt.savePath, 'best.pth.tar')
+        
+      if (epoch % opt.saveEvery) == 0: #save every epoch
+        save_checkpoint({
+            'epoch': epoch,
+            'train_loss': train_loss,
+            'val_loss': val_loss,
+            'model': model.state_dict(),
+            'optimizer': optimizer.state_dict(),
+        }, opt.savePath, 'epoch{}.pth.tar'.format(epoch))      
+  else:  
+    if opt.loadPath: #loading stuff
+      startEpoch, train_loss, val_loss = load_checkpoint(model, 
+                                                         optimizer, 
+                                                         opt.loadPath)
+    else:
+      raise Exception('Please point to a model using --loadPath')
+
+    #Set up output paths
+    query_features = Path(opt.outPath) / 'q_features.h5'
+    db_features = Path(opt.outPath) / 'db_features.h5'
+    retrieval = Path(opt.outPath) / 'retrived.h5'
     
-    model = model.to(device)
-    if opt.mode.lower() == 'train':
-        optimizer = optim.Adam(filter(lambda p: p.requires_grad,
-            model.parameters()), lr = opt.lr)
-    
-        criterion = nn.TripletMarginLoss(margin=opt.margin**0.5, p=2,
-            reduction='sum').to(device)
-        
-    if opt.mode.lower() == 'train':
-        print("===> Training model")
-        writer = SummaryWriter
+    #Load database into Dataset, then calculate db's netvlads
+    db_dataset = ImageDataset(opt.dbPath)
+    calculate_netvlads(model, db_dataset, db_features)
+    #Load query into Dataset, then calculate query's netvlads
+    query_dataset = ImageDataset(opt.queryPath)
+    calculate_netvlads(model, query_dataset, query_features)
 
-        logdir = writer.file_writer.get_logdir()
+    #Find Retrieval 
+    query(query_features, db_features, retrieval)
 
-        opt.savePath = join(logdir, opt.savePath)
-        if not opt.resume:
-            makedirs(opt.savePath)
-        
-        with open(join(opt.savePath, 'flags.json'), 'w') as f:
-            f.write(json.dump(
-                {k: v for k,v in vars(opt).items()}
-            ))
-        
-        print('===> Saving state to: ', logdir)
-        not_improved = 0
-        best_score = 0
-
-        for epoch in range(opt.start_epoch+1, opt.nEpochs+1):
-            train(epoch)
-            if (epoch % opt.evalEvery) == 0:
-                recalls = test(whole_test_set, epoch, write_tboard = True)
-                is_best = recalls[5]>best_score
-                if is_best:
-                    not_improved = 0
-                    best_score = recalls[5]
-                else:
-                    not_improved += 1
-                
-                save_checkpoint({
-                    'epoch': epoch,
-                    'state_dict': model.state_dict(),
-                    'recalls': recalls,
-                    'best_score': best_score,
-                    'optimizer': optimizer.state_dict(),
-                    'parallel': isParallel,
-                }, is_best)
-
-                if opt.patience > 0 and not_improved > (opt.patience / opt.evalEvery):
-                    print('Performance did not improve for', opt.patience, 'epochs. Stopping.')
-                    break
-        print('=> Best Recall@5: {:.4f}'.format(best_score), flush=True)
-        writer.close()
-
-
-
-#==========================
-
-
-#Parameters
-batchSize = 8
-nEpochs = 50
-not_improved = 0
-best_score = 0
-startEpoch = 9
-#loading model
-#startEpoch = load_checkpoint()
-#Traning
-for epoch in range(startEpoch+1, nEpochs+1):
-  epoch_loss = train(epoch, trainset)
-  if (epoch % 10) == 0:
-    save_checkpoint({
-        'epoch': epoch,
-        'state_dict': model.state_dict(),
-        'loss': epoch_loss,
-        'optimizer': optimizer.state_dict(),
-    }, cp_dir, 'epoch{}.pth.tar'.format(epoch))
-
-def query(model,
-          query_dir: Path, 
-          features: Path,
-          out_path: Optional[Path]=None,
-          n_result=10):
-  
-  query_names = [str(ref.relative_to(query_dir)) for ref in query_dir.iterdir()]
-  query_set = TripletDataset()
+    #plot_retrievals_images(retrieval, opt.dbPath, opt.queryPath)

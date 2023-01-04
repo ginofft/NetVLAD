@@ -42,9 +42,11 @@ parser.add_argument('--n_vocabs', type=int, default=16,
 parser.add_argument('--nEpochs', type =  int, default = 500, help='no. epochs')
 parser.add_argument('--mode', type=str, default='train', 
                     help='Traning mode or Testing(inference) mode', 
-                    choices=['train', 'test'])
+                    choices=['train', 'test'],
+                    required=True)
 parser.add_argument('--trainPath', type=str, default='', 
-                    help='Path of training set')
+                    help='Path of training set',
+                  )
 parser.add_argument('--validationPath', type=str, default='', 
                     help='Path of validation set')
 parser.add_argument('--savePath', type=str, default='', 
@@ -88,8 +90,14 @@ if __name__ == "__main__":
     val_loss = 1
     train_loss = 1
 
-    train_set = OnlineTripletImageDataset(Path(opt.trainPath))
-    val_set = OnlineTripletImageDataset(Path(opt.validationPath))
+    if opt.trainPath:
+      train_set = OnlineTripletImageDataset(Path(opt.trainPath))
+    else:
+      raise Exception("Please provide a trainset using --trainPath")
+    if opt.validationPath:
+      val_set = OnlineTripletImageDataset(Path(opt.validationPath))
+    else:
+      print('No validation set found, you can set a validation set using --validationPath')
 
     if opt.tripletLoss.lower() == 'batchhard':
       criterion = OnlineTripletLoss(margin = opt.margin, hard=True).to(device)
@@ -113,9 +121,12 @@ if __name__ == "__main__":
       epoch_train_loss = train(device, model, epoch,
                             train_set, opt.P, opt.K,
                             criterion, optimizer)
-      epoch_val_loss = validate(device, model, 
-                                val_set, opt.P, opt.K,
-                                criterion)
+      if opt.validationPath:
+        epoch_val_loss = validate(device, model, 
+                                  val_set, opt.P, opt.K,
+                                  criterion)
+      else:
+        epoch_val_loss = 1
       #saving stuff
       if (epoch_train_loss < train_loss): #lowest loss on train set
         train_loss = epoch_train_loss

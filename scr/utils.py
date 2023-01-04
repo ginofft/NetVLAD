@@ -74,7 +74,7 @@ def plot_retrievals_images(retrieval,db_dir: Path, query_dir:Optional[Path] = No
         
 def save_checkpoint(state, path:Path, filename='lastest.pth.tar'):
   out_path = path / filename
-  torch.save(state, path / filename)
+  torch.save(state, out_path)
 
 def load_checkpoint(path, device, model, optimizer = None):
   state = torch.load(path)

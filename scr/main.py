@@ -102,7 +102,7 @@ if __name__ == "__main__":
       pass #TODO SGD optimizer
 
     if opt.loadPath: #loading stuff
-      startEpoch, train_loss, val_loss = load_checkpoint(opt.loadPath,
+      startEpoch, train_loss, val_loss = load_checkpoint(Path(opt.loadPath),
                                                         device,
                                                         model, 
                                                         optimizer)
@@ -123,7 +123,7 @@ if __name__ == "__main__":
             'val_loss': epoch_val_loss,
             'model': model.state_dict(),
             'optimizer': optimizer.state_dict(),
-        }, opt.savePath, 'best_train.pth.tar')
+        }, Path(opt.savePath), 'best_train.pth.tar')
 
       if (epoch_val_loss < val_loss): #lowest loss on val set
         val_loss = epoch_val_loss
@@ -133,7 +133,7 @@ if __name__ == "__main__":
             'val_loss': epoch_val_loss,
             'model': model.state_dict(),
             'optimizer': optimizer.state_dict(),
-        }, opt.savePath, 'best.pth.tar')
+        }, Path(opt.savePath), 'best.pth.tar')
         
       if (epoch % opt.saveEvery) == 0: #save every epoch
         save_checkpoint({
@@ -142,10 +142,10 @@ if __name__ == "__main__":
             'val_loss': val_loss,
             'model': model.state_dict(),
             'optimizer': optimizer.state_dict(),
-        }, opt.savePath, 'epoch{}.pth.tar'.format(epoch))      
+        }, Path(opt.savePath), 'epoch{}.pth.tar'.format(epoch))      
   else:  
     if opt.loadPath: #loading stuff
-      startEpoch, train_loss, val_loss = load_checkpoint(opt.loadPath, 
+      startEpoch, train_loss, val_loss = load_checkpoint(Path(opt.loadPath), 
                                                         device,
                                                         model)
     else:

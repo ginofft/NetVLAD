@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-class OnlineTripletLoss(nn.Module):
+class OnlineTripletLoss(torch.nn.Module):
   def __init__(self, margin = 0.1**0.5, hard=True, squared=False):
     super(OnlineTripletLoss, self).__init__()
     self.margin = margin

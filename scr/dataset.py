@@ -5,7 +5,7 @@ import numpy as np
 from torchvision import transforms
 from torch.utils.data.dataloader import default_collate
 
-from .utils import read_image
+from utils import read_image
 
 class ImageDataset(torch.utils.data.Dataset):
   '''This class is the image dataset used in inferences

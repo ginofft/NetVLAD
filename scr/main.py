@@ -167,7 +167,7 @@ if __name__ == "__main__":
     #Set up output paths
     query_features = Path(opt.outPath) / 'q_features.h5'
     db_features = Path(opt.outPath) / 'db_features.h5'
-    retrieval = Path(opt.outPath) / 'retrived.h5'
+    retrieval = Path(opt.outPath) / 'retrieved.h5'
     
     #Load database into Dataset, then calculate db's netvlads
     db_dataset = ImageDataset(Path(opt.dbPath))

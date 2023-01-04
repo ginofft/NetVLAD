@@ -87,4 +87,7 @@ def load_checkpoint(path, device, model, optimizer = None):
   if optimizer != None:
     optimizer.load_state_dict(state['optimizer'])
   print("=> loaded checkpoint '{}' (epoch {})".format(True, epoch))
+  print("Checkpoint's train loss is: {:.4f}".format(train_loss))
+  print("Checkpoint's validation loss is: {:.4f}".format(val_loss))
   return epoch, train_loss, val_loss
+  

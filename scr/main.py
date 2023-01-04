@@ -63,6 +63,8 @@ parser.add_argument('--queryPath', type=str, default='',
                     help='Path to query folder')
 parser.add_argument('--outPath', type=str, default='', 
                     help="Path where to store: database's netvlads, query's netvlads and retrieval results")
+parser.add_argument('--plotResult', type=bool, default=False,
+                    help='Whether or not to plot out retrieval results (currently have some problem with notebook)')
 
 if __name__ == "__main__":
   opt = parser.parse_args()
@@ -164,6 +166,10 @@ if __name__ == "__main__":
     else:
       raise Exception('Please point to a model using --loadPath')
 
+    if not opt.dbPath: 
+      raise Exception('Please provide database folder using --dbPath')
+    if not opt.queryPath:
+      raise Exception('Please provide query folder using --queryPath')
     #Set up output paths
     query_features = Path(opt.outPath) / 'q_features.h5'
     db_features = Path(opt.outPath) / 'db_features.h5'

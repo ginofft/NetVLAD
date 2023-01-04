@@ -70,7 +70,6 @@ def plot_retrievals_images(retrieval,db_dir: Path, query_dir:Optional[Path] = No
             query_img = [read_image(query_dir/ query_ref)]
             plot_images(query_img, dpi=25)
         db_imgs = [read_image(db_dir/ r) for r in db_refs[i]]
-        print('okay')
         plot_images(db_imgs, dpi=25)
         
 def save_checkpoint(state, path:Path, filename='lastest.pth.tar'):

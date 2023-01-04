@@ -171,10 +171,10 @@ if __name__ == "__main__":
     
     #Load database into Dataset, then calculate db's netvlads
     db_dataset = ImageDataset(Path(opt.dbPath))
-    calculate_netvlads(model, db_dataset, db_features)
+    calculate_netvlads(device, model, db_dataset, db_features)
     #Load query into Dataset, then calculate query's netvlads
     query_dataset = ImageDataset(Path(opt.queryPath))
-    calculate_netvlads(model, query_dataset, query_features)
+    calculate_netvlads(device, model, query_dataset, query_features)
 
     #Find Retrieval 
     query(query_features, db_features, retrieval)

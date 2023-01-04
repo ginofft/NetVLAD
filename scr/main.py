@@ -88,8 +88,8 @@ if __name__ == "__main__":
     val_loss = 1
     train_loss = 1
 
-    train_set = OnlineTripletImageDataset(opt.trainPath)
-    val_set = OnlineTripletImageDataset(opt.validationPath)
+    train_set = OnlineTripletImageDataset(Path(opt.trainPath))
+    val_set = OnlineTripletImageDataset(Path(opt.validationPath))
 
     if opt.tripletLoss.lower() == 'batchhard':
       criterion = OnlineTripletLoss(margin = opt.margin, hard=True).to(device)
@@ -157,10 +157,10 @@ if __name__ == "__main__":
     retrieval = Path(opt.outPath) / 'retrived.h5'
     
     #Load database into Dataset, then calculate db's netvlads
-    db_dataset = ImageDataset(opt.dbPath)
+    db_dataset = ImageDataset(Path(opt.dbPath))
     calculate_netvlads(model, db_dataset, db_features)
     #Load query into Dataset, then calculate query's netvlads
-    query_dataset = ImageDataset(opt.queryPath)
+    query_dataset = ImageDataset(Path(opt.queryPath))
     calculate_netvlads(model, query_dataset, query_features)
 
     #Find Retrieval 

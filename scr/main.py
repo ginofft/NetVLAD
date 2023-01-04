@@ -8,7 +8,7 @@ import torchvision.models as models
 from netvlad import NetVLADLayer
 from dataset import OnlineTripletImageDataset, ImageDataset
 from loss import OnlineTripletLoss
-from utils import save_checkpoint, load_checkpoint
+from utils import save_checkpoint, load_checkpoint, plot_retrievals_images
 from train import train, validate
 from query import query, calculate_netvlads
 
@@ -31,9 +31,9 @@ parser.add_argument('--lrGamma', type=float, default=0.5,
 ##Loss
 parser.add_argument('--margin', type=float, default=0.1**0.5, 
                     help='Margin for triplet loss')
-parser.add_argument('--tripletLoss', type=str, default='naive', 
+parser.add_argument('--tripletLoss', type=str, default='batchall', 
                     help='Type of triplet loss to use. There are three available: naive (random triplet), online triplet mining - hard variation, online triplet mining - semi-hard variation',
-                    choices=['naive', 'BatchAll', 'BatchHard'])
+                    choices=['naive', 'batchall', 'batchhard'])
 ##NetVLAD
 parser.add_argument('--n_vocabs', type=int, default=16, 
                     help='no. netvlad vocabulary')
@@ -93,8 +93,10 @@ if __name__ == "__main__":
 
     if opt.tripletLoss.lower() == 'batchhard':
       criterion = OnlineTripletLoss(margin = opt.margin, hard=True).to(device)
-    else:
+    elif opt.tripletLoss.lower() == 'batchall':
       criterion = OnlineTripletLoss(margin = opt.margin, hard=False).to(device)
+    elif opt.tripletLoss.lower() == 'naive':
+      raise Exception('naive triplet is not implemented yet\n(cause im lazy, deal with it)')
     if opt.optim.lower() =='adam':
       optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), 
                              lr = opt.lr)
@@ -166,4 +168,4 @@ if __name__ == "__main__":
     #Find Retrieval 
     query(query_features, db_features, retrieval)
 
-    #plot_retrievals_images(retrieval, opt.dbPath, opt.queryPath)
+    plot_retrievals_images(retrieval, Path(opt.dbPath), Path(opt.queryPath))

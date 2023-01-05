@@ -1,5 +1,5 @@
 import torch
-from sampler import OnlineTripletSampler
+from .sampler import OnlineTripletSampler
 
 def train(device, 
         model, 

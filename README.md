@@ -23,16 +23,16 @@ The train and validation format is as followed:
 To train:
 ```
 python main.py --mode train --tripletLoss batchall --nEpochs 1000 \
-  --trainPath /data/train \
-  --validationPath /data/validation \
-  --savePath /model/BatchAll \
-  --loadPath /model/BatchAll/demo_version.pth.tar #Optional(if train from resume)
+  --trainPath data/train \
+  --validationPath data/validation \
+  --savePath model/BatchAll \
+  --loadPath model/BatchAll/best.pth.tar #Optional
 ```
 To inference:
 ```
 python main.py --mode test \
-  --dbPath /data/database \
-  --queryPath /data/query \
-  --loadPath /model/BatchAll/demo_version.pth.tar \
-  --outPath /out
+  --dbPath data/database \
+  --queryPath data/query \
+  --loadPath model/BatchAll/best.pth.tar \
+  --outPath out
 ```

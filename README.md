@@ -5,9 +5,9 @@ Pytorch implementation of NetVLAD with Online Triplet Mining (Batch Hard and Bat
 * **Alexander Hermans, Lucas Beyer and Bastian Leibe**. *In Defense of the Triplet Loss for Person Re-Identification (2017)*. https://doi.org/10.48550/arXiv.1511.07247
 
 ## Quick Start
-The model for this dataset is stored [here](https://drive.google.com/file/d/1ZurYnT9hw9KRl2fLyNAJfTCmlw0OdUGa/view?usp=sharing). 
-Download and put the model inside `/model/BatchAll/`.
-The train and validation format is as followed:
+The model for this dataset is stored [here](https://drive.google.com/file/d/1ZurYnT9hw9KRl2fLyNAJfTCmlw0OdUGa/view?usp=sharing).  
+Download and put the model inside `/model/BatchAll/`.  
+The train and validation format is as followed:  
 ```
 .
 ├── train            

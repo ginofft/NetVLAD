@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision.models as models
+from torchvision.models import VGG16_Weights
 
 from scr.netvlad import NetVLADLayer
 from scr.dataset import OnlineTripletImageDataset, ImageDataset
@@ -74,7 +75,7 @@ if __name__ == "__main__":
   else:
     raise Exception("No GPU found, please get one")
   #Setup model
-  encoder = models.vgg16(pretrained=True)
+  encoder = models.vgg16(weights=VGG16_Weights.DEFAULT)
   encoder_k = 512 ##TODO
   layers = list(encoder.features.children())[:-2]
 

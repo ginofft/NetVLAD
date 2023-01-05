@@ -6,7 +6,7 @@ Pytorch implementation of NetVLAD with Online Triplet Mining (Batch Hard and Bat
 
 ## Quick Start
 The model for this dataset is stored [here](https://drive.google.com/file/d/1ZurYnT9hw9KRl2fLyNAJfTCmlw0OdUGa/view?usp=sharing)
-
+Download and put the model inside `/model/BatchAll/`
 The train and validation format is as followed:
 ```
 .
@@ -19,4 +19,20 @@ The train and validation format is as followed:
 │   │   ├──img1_c2.jpg
 │   │   ├──img2_c2.png
 │   │   ├──...
+```
+To train:
+```
+python main.py --mode train --tripletLoss batchall --nEpochs 1000 \
+  --trainPath /data/train \
+  --validationPath /data/validation \
+  --savePath /model/BatchAll \
+  --loadPath /model/BatchAll/demo_version.pth.tar #Optional(if train from resume)
+```
+To inference:
+```
+python main.py --mode test \
+  --dbPath /data/database \
+  --queryPath /data/query \
+  --loadPath /model/BatchAll/demo_version.pth.tar \
+  --outPath /out
 ```

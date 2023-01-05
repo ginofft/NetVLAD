@@ -1,0 +1,34 @@
+
+@article{DBLP:journals/corr/ArandjelovicGTP15,
+  author    = {Relja Arandjelovic and
+               Petr Gron{\'{a}}t and
+               Akihiko Torii and
+               Tom{\'{a}}s Pajdla and
+               Josef Sivic},
+  title     = {NetVLAD: {CNN} architecture for weakly supervised place recognition},
+  journal   = {CoRR},
+  volume    = {abs/1511.07247},
+  year      = {2015},
+  url       = {http://arxiv.org/abs/1511.07247},
+  eprinttype = {arXiv},
+  eprint    = {1511.07247},
+  timestamp = {Mon, 13 Aug 2018 16:46:12 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/ArandjelovicGTP15.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{DBLP:journals/corr/HermansBL17,
+  author    = {Alexander Hermans and
+               Lucas Beyer and
+               Bastian Leibe},
+  title     = {In Defense of the Triplet Loss for Person Re-Identification},
+  journal   = {CoRR},
+  volume    = {abs/1703.07737},
+  year      = {2017},
+  url       = {http://arxiv.org/abs/1703.07737},
+  eprinttype = {arXiv},
+  eprint    = {1703.07737},
+  timestamp = {Mon, 13 Aug 2018 16:47:38 +0200},
+  biburl    = {https://dblp.org/rec/journals/corr/HermansBL17.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+  }

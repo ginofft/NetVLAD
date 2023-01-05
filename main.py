@@ -5,12 +5,12 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision.models as models
 
-from .scr.netvlad import NetVLADLayer
-from .scr.dataset import OnlineTripletImageDataset, ImageDataset
-from .scr.loss import OnlineTripletLoss
-from .scr.utils import save_checkpoint, load_checkpoint, plot_retrievals_images
-from .scr.train import train, validate
-from .scr.query import query, calculate_netvlads
+from scr.netvlad import NetVLADLayer
+from scr.dataset import OnlineTripletImageDataset, ImageDataset
+from scr.loss import OnlineTripletLoss
+from scr.utils import save_checkpoint, load_checkpoint, plot_retrievals_images
+from scr.train import train, validate
+from scr.query import query, calculate_netvlads
 
 parser = argparse.ArgumentParser(description = 'torch-netvlad-online_triplet_mining')
 #Hyper Parameters

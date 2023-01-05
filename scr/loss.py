@@ -10,12 +10,31 @@ class OnlineTripletLoss(torch.nn.Module):
   
   def forward(self, embeddings, labels):
     '''
-    This function return BatchHardTripletLoss of a batch. The process is:
-      - Calculate pairwise distance - distances between embedding
-      - Create two masks based on labels:
-        + postive mask: same labels
-        + negative mask: different labels
-      - Tak
+    This function calculate the Triplet Loss using Online Triplet Mining.
+    
+    Args
+    ------------------------------------------------------------------------------------------
+    embeddings: [batch_size, d] embeddings of a batch - where d is dimension of each embedding
+    labels: [batch_size] labels of a batch
+
+    Return triplet_loss: a float number of the loss from Online Triplet Mining
+
+    Algorithms
+    ------------------------------------------------------------------------------------------
+    There are two kind of triplet loss associated with Online Triplet Mining: batch hard and batch all
+
+    Batch Hard: 
+      - Take the hardest positive pair, and the hardest negative pair in the batch.
+      - Calculate Triplet Loss from those two pairs.
+
+    Batch All:
+      - Take all posible triplet pairs
+      - Take all 'hard' pairs - where (positive distance - negative distance + margin)>0
+      - Calculate triplet loss for these 'hard' pairs
+      - Average out the loss -> Final triplet Loss
+    
+    DO NOT use batch hard at the early stages of training, as it lead to model collapse
+    Recommended workflow: train using Batch All till convergence -> switch to Batch Hard for 1-3 epochs
     '''
     pairwise_dist = self._pairwise_distance(embeddings, squared=self.squared)
     

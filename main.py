@@ -157,8 +157,8 @@ if __name__ == "__main__":
       if (epoch % opt.saveEvery) == 0: #save every epoch
         save_checkpoint({
             'epoch': epoch,
-            'train_loss': train_loss,
-            'val_loss': val_loss,
+            'train_loss': epoch_train_loss,
+            'val_loss': epoch_val_loss,
             'model': model.state_dict(),
             'optimizer': optimizer.state_dict(),
         }, Path(opt.savePath), 'epoch{}.pth.tar'.format(epoch))      

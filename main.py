@@ -75,7 +75,10 @@ if __name__ == "__main__":
   else:
     raise Exception("No GPU found, please get one")
   #Setup model
-  encoder = models.vgg16(weights=VGG16_Weights.DEFAULT)
+  if opt.loadPath:
+    encoder = models.vgg16(weights=None)
+  else:
+    encoder = models.vgg16(weights=VGG16_Weights.DEFAULT)
   encoder_k = 512 ##TODO
   layers = list(encoder.features.children())[:-2]
 

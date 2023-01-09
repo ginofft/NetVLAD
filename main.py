@@ -54,6 +54,9 @@ parser.add_argument('--savePath', type=str, default='',
                     help='Path to save checkpoint to')
 parser.add_argument('--loadPath', type=str, default='', 
                     help='Path to load checkpoint from - used for resume or testing')
+parser.add_argument('--oldLoss', type = bool, default= True,
+                    help='If true, resume training with stored val and train loss; Else, set val and train loss equal 1.\n You should set this to false when switching loss function'
+                    )
 parser.add_argument('--saveEvery', type=int, default=25, 
                     help='no. epoch before a save is created')
 
@@ -79,6 +82,7 @@ if __name__ == "__main__":
     encoder = models.vgg16(weights=None)
   else:
     encoder = models.vgg16(weights=VGG16_Weights.DEFAULT)
+
   encoder_k = 512 ##TODO
   layers = list(encoder.features.children())[:-2]
 
@@ -122,6 +126,10 @@ if __name__ == "__main__":
                                                         device,
                                                         model, 
                                                         optimizer)
+      if not opt.oldLoss: #condition for when you switch loss function
+        train_loss = 1
+        val_loss = 1  
+      
     for epoch in range(startEpoch+1, opt.nEpochs+1):
       # train & validate
       epoch_train_loss = train(device, model, epoch,

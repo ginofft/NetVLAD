@@ -126,10 +126,10 @@ if __name__ == "__main__":
                                                         device,
                                                         model, 
                                                         optimizer)
-      if not opt.oldLoss: #condition for when you switch loss function
-        train_loss = 1
-        val_loss = 1  
-      
+    if not opt.oldLoss: #condition for when you switch loss function
+      train_loss = 1
+      val_loss = 1  
+    
     for epoch in range(startEpoch+1, opt.nEpochs+1):
       # train & validate
       epoch_train_loss = train(device, model, epoch,

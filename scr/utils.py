@@ -5,6 +5,7 @@ from PIL import Image
 import h5py
 from typing import Optional
 import torch
+import argparse
 
 def plot_images(imgs, titles=None, cmaps='gray', dpi=100, pad=.5,
                 adaptive=True):
@@ -91,3 +92,13 @@ def load_checkpoint(path, device, model, optimizer = None):
   print("Checkpoint's validation loss is: {:.4f}".format(val_loss))
   return epoch, train_loss, val_loss
   
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected')
+    

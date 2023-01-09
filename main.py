@@ -9,7 +9,7 @@ from torchvision.models import VGG16_Weights
 from scr.netvlad import NetVLADLayer
 from scr.dataset import OnlineTripletImageDataset, ImageDataset
 from scr.loss import OnlineTripletLoss
-from scr.utils import save_checkpoint, load_checkpoint, plot_retrievals_images
+from scr.utils import save_checkpoint, load_checkpoint, plot_retrievals_images, str2bool
 from scr.train import train, validate
 from scr.query import query, calculate_netvlads
 
@@ -54,7 +54,7 @@ parser.add_argument('--savePath', type=str, default='',
                     help='Path to save checkpoint to')
 parser.add_argument('--loadPath', type=str, default='', 
                     help='Path to load checkpoint from - used for resume or testing')
-parser.add_argument('--oldLoss', type = bool, default= True,
+parser.add_argument('--oldLoss', type = str2bool, nargs = '?', default= True,
                     help='If true, resume training with stored val and train loss; Else, set val and train loss equal 1.\n You should set this to false when switching loss function'
                     )
 parser.add_argument('--saveEvery', type=int, default=25, 

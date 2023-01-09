@@ -127,6 +127,7 @@ if __name__ == "__main__":
                                                         model, 
                                                         optimizer)
     if not opt.oldLoss: #condition for when you switch loss function
+      print('ok')
       train_loss = 1
       val_loss = 1  
     

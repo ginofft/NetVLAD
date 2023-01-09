@@ -5,9 +5,11 @@ Pytorch implementation of NetVLAD with Online Triplet Mining (Batch Hard and Bat
 * **Alexander Hermans, Lucas Beyer and Bastian Leibe**. *In Defense of the Triplet Loss for Person Re-Identification (2017)*. https://doi.org/10.48550/arXiv.1511.07247
 
 ## Quick Start
-The model for this dataset is stored [here](https://drive.google.com/file/d/1ZurYnT9hw9KRl2fLyNAJfTCmlw0OdUGa/view?usp=sharing).  
-Download and put the model inside `/model/BatchAll/`.  
-The train and validation format is as followed:  
+To make use of Online triplet mining:
+- train with batchAll till convergence
+- train with batchHard for **some** epochs.
+  
+The train and validation folder format is as followed:  
 ```
 .
 ├── train            
@@ -20,13 +22,21 @@ The train and validation format is as followed:
 │   │   ├──img2_c2.png
 │   │   ├──...
 ```
-To train:
+To train (initially):
 ```
 python main.py --mode train --tripletLoss batchall --nEpochs 1000 \
   --trainPath data/train \
   --validationPath data/validation \
   --savePath model/BatchAll \
-  --loadPath model/BatchAll/best.pth.tar #Optional
+```
+Switching loss function into BatchHard, then train:
+```
+python main.py --mode train --tripletLoss batchhard --nEpochs 1000 \
+  --trainPath data/train \
+  --validationPath data/validation \
+  --savePath model/batchHard \
+  --loadPath model/BatchAll/best.pth.tar
+  --oldLoss False
 ```
 To inference:
 ```

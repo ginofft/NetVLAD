@@ -130,6 +130,7 @@ if __name__ == "__main__":
       train_loss = 1
       val_loss = 1  
     
+    
     for epoch in range(startEpoch+1, opt.nEpochs+1):
       # train & validate
       epoch_train_loss = train(device, model, epoch,

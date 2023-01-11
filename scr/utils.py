@@ -50,7 +50,7 @@ def read_image(path: Path):
         raise ValueError(f'Cannot read image {path}.')
     return image
 
-def plot_retrievals_images(retrieval,db_dir: Path, query_dir:Optional[Path] = None):
+def plot_retrieval_images(retrieval,db_dir: Path, query_dir:Optional[Path] = None):
     """This function plots queries and retrieved images
     Args
     ----------------------------------------------------------------

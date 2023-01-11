@@ -67,8 +67,8 @@ parser.add_argument('--queryPath', type=str, default='',
                     help='Path to query folder')
 parser.add_argument('--outPath', type=str, default='', 
                     help="Path where to store: database's netvlads, query's netvlads and retrieval results")
-parser.add_argument('--plotRetrieval', type=bool, default=False,
-                    help='Whether or not to plot out retrieval results (currently have some problem with notebook)')
+# parser.add_argument('--plotRetrieval', type=bool, default=False,
+#                     help='Whether or not to plot out retrieval results (currently have some problem with notebook)')
 
 if __name__ == "__main__":
   opt = parser.parse_args()
@@ -197,5 +197,4 @@ if __name__ == "__main__":
 
     #Find Retrieval 
     query(query_features, db_features, retrieval)
-    if opt.plotRetrieval:
-      plot_retrievals_images(retrieval, Path(opt.dbPath), Path(opt.queryPath))
+    #plot_retrievals_images(retrieval, Path(opt.dbPath), Path(opt.queryPath))

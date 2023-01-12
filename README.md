@@ -36,7 +36,7 @@ python main.py --mode train --tripletLoss batchhard --nEpochs 1000 \
   --validationPath data/validation \
   --savePath model/batchHard \
   --loadPath model/BatchAll/best.pth.tar
-  --oldLoss False
+  --oldLoss False # This argument is needed when switching Loss function
 ```
 To inference:
 ```
@@ -46,3 +46,9 @@ python main.py --mode test \
   --loadPath model/BatchAll/best.pth.tar \
   --outPath out
 ```
+
+## Online Triplet Mining: Batch Hard and Batch All
+Naive triplet loss made use of random triplets, which usually resulted in:
+- slow convergence
+- loss stuck in local minima
+The root cause is due to how triplets are constructed - a visualization is shown below.

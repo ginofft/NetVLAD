@@ -52,5 +52,10 @@ Naive triplet loss made use of random triplets, which usually resulted in:
 - slow convergence
 - loss stuck in local minima
 The root cause is due to how triplets are constructed - a visualization is shown below.
-![image](https://user-images.githubusercontent.com/80506834/212862630-6572e7a6-3b12-4694-bfda-3bf65ae41057.png)
+![tripletPairs](https://user-images.githubusercontent.com/80506834/212865622-5ea29b61-3abd-4751-be50-452fb4823457.png)
+
+
+
+
+
 

@@ -54,8 +54,16 @@ Naive triplet loss made use of random triplets, which usually resulted in:
 The root cause is due to how triplets are constructed - a visualization is shown below.
 ![tripletPairs](https://user-images.githubusercontent.com/80506834/212865622-5ea29b61-3abd-4751-be50-452fb4823457.png)
 
+Given a random anchor, we can construct the following pairs:
+- Easy Positive (Easy Pos): same class; Is near the anchor
+- Hard Positive (Hard Pos): same class; Is far from the anchor
+- Easy Negative (Easy Neg): different class; Is near the anchor
+- Hard Negative (Hard Neg): different class; Is far from the anchor
 
+Triplet loss calculate the loss given by a [anchor, positive, negative] triplet, however, not all triplet ares equal!!
+- If [anchor, positive] and [anchor, negative] sastify the conditions of easy pos/neg -> There is **nothing** to learn from this triplet
 
+=> We need to take [anchor, positive, negative] triplet; That create both: Hard Pos and Hard Neg pairs
 
 
 

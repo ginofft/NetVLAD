@@ -48,6 +48,9 @@ python main.py --mode test \
 ```
 
 ## Online Triplet Mining: Batch Hard and Batch All
+Online triplet mining refer to taken from a **batch** a triplet of [anchor, positive, negative] so that the triplet loss is **largest**.
+Then use that triplet to train the model.
+### Problem statement
 Naive triplet loss made use of random triplets, which usually resulted in:
 - slow convergence
 - loss stuck in local minima
@@ -62,8 +65,9 @@ Given a random anchor, we can construct the following pairs:
 
 Triplet loss calculate the loss given by a [anchor, positive, negative] triplet, however, not all triplet ares equal!!
 - If [anchor, positive] and [anchor, negative] sastify the conditions of easy pos/neg -> There is **nothing** to learn from this triplet
+- The problem is worse when there isn't sufficient number of hard sample in trainning set; As the probability of hitting a hard pair is very low.
+### Triplet Mining
+Aware of such problem, a technique called triplet mining was developed. In a nutshell, Triplet Mining refer to calculation triplet pairs **before** selecting approximate triplet to train the model. Which meant, the embedding is calculated **beforehand** (whose value will changed as the model is updated). As a result, training time is extremely long.
 
-=> We need to take [anchor, positive, negative] triplet; That create both: Hard Pos and Hard Neg pairs
-
-
-
+A solution is called offline triplet mining - inwhich embedding are calculated **offline** - or an cache is used. 
+-> Require computation resources.

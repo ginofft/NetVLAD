@@ -69,5 +69,7 @@ Triplet loss calculate the loss given by a [anchor, positive, negative] triplet,
 ### Triplet Mining
 Aware of such problem, a technique called triplet mining was developed. In a nutshell, Triplet Mining refer to calculation triplet pairs **before** selecting approximate triplet to train the model. Which meant, the embedding is calculated **beforehand** (whose value will changed as the model is updated). As a result, training time is extremely long.
 
-A solution is called offline triplet mining - inwhich embedding are calculated **offline** - or an cache is used. 
+A solution is called offline triplet mining; In which, **all** triplet are calculated, and then appropriate triplets are choosen.
 -> Require computation resources.
+
+Due to the shortcomning of Offline Triplet Mining, Online Triplet Mining was born; In which, only triplet in the current **batch** are calculated, and then approriate triplets are choosen.

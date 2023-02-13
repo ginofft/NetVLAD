@@ -9,7 +9,7 @@ from torchvision.models import VGG16_Weights
 from scr.netvlad import NetVLADLayer
 from scr.dataset import OnlineTripletImageDataset, ImageDataset
 from scr.loss import OnlineTripletLoss
-from scr.utils import save_checkpoint, load_checkpoint, plot_retrievals_images, str2bool
+from scr.utils import save_checkpoint, load_checkpoint, plot_retrieval_images, str2bool
 from scr.train import train, validate
 from scr.query import query, calculate_netvlads
 
@@ -197,4 +197,4 @@ if __name__ == "__main__":
 
     #Find Retrieval 
     query(query_features, db_features, retrieval)
-    #plot_retrievals_images(retrieval, Path(opt.dbPath), Path(opt.queryPath))
+    plot_retrieval_images(retrieval, Path(opt.dbPath), Path(opt.queryPath))

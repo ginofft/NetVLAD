@@ -87,15 +87,15 @@ if __name__ == "__main__":
     val_loss = float('inf')
     train_loss = float('inf')
 
-    if opt.dataPath:
-      dataset = OnlineTripletImageDataset(Path(opt.dataPath))
+    if opt.trainPath:
+      trainSet = OnlineTripletImageDataset(Path(opt.trainPath))
     else:
-      raise Exception("Please provide a trainset using --dataPath")
+      raise Exception("Please provide a trainset using --trainPath")
     
-    valSize = int(opt.valRatio * len(dataset))
-    trainSize = len(dataset) - valSize
-    trainSet, valSet = torch.utils.data.random_split(dataset, [trainSize, valSize],
-                                                     generator = torch.Generator().manual_seed(420))
+    if opt.valPath:
+      valSet = OnlineTripletImageDataset(Path(opt.valPath))
+    else:
+      raise Exception("Please provide a validation set using --valPath")
 
     if opt.tripletLoss.lower() == 'batchhard':
       criterion = OnlineTripletLoss(margin = opt.margin, hard=True).to(device)

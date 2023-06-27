@@ -45,7 +45,7 @@ def read_image(path: Path):
     The read is perform using PIL.Image (cause PyTorch).
     """
 
-    image = Image.open(path)
+    image = Image.open(path).convert('RGB')
     if image is None:
         raise ValueError(f'Cannot read image {path}.')
     return image

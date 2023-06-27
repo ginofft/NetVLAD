@@ -6,12 +6,12 @@ import torch.optim as optim
 import torchvision.models as models
 from torchvision.models import VGG16_Weights
 
-from scr.netvlad import NetVLADLayer
-from scr.dataset import OnlineTripletImageDataset, ImageDataset
-from scr.loss import OnlineTripletLoss
-from scr.utils import save_checkpoint, load_checkpoint, plot_retrieval_images, str2bool
-from scr.train import train, validate
-from scr.query import query, calculate_netvlads
+from src.netvlad import NetVLADLayer
+from src.dataset import OnlineTripletImageDataset, ImageDataset
+from src.loss import OnlineTripletLoss
+from src.utils import save_checkpoint, load_checkpoint, plot_retrieval_images, str2bool
+from src.train import train, validate
+from src.query import query, calculate_netvlads
 
 parser = argparse.ArgumentParser(description = 'torch-netvlad-online_triplet_mining')
 #Hyper Parameters

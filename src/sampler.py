@@ -113,7 +113,7 @@ class OnlineTripletSampler(torch.utils.data.BatchSampler):
     pid2imgs: a label dictionary; Whose keys are labels, and values are index belonging to that label
     '''
     pid2imgs = {}
-    for i, label in enumerate(data_source.labels):
+    for i, (image, label) in enumerate(data_source):
       if label not in pid2imgs:
         pid2imgs[label] = [i]
       else:

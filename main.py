@@ -103,7 +103,8 @@ if __name__ == "__main__":
     
     valSize = int(opt.valRatio * len(dataset))
     trainSize = len(dataset) - valSize
-    trainSet, valSet = torch.utils.data.random_split(dataset, [trainSize, valSize])
+    trainSet, valSet = torch.utils.data.random_split(dataset, [trainSize, valSize],
+                                                     generator = torch.Generator().manual_seed(420))
 
     if opt.tripletLoss.lower() == 'batchhard':
       criterion = OnlineTripletLoss(margin = opt.margin, hard=True).to(device)

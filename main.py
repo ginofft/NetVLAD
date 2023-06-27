@@ -24,11 +24,6 @@ parser.add_argument('--K', type=int, default=8,
 parser.add_argument('--optim', type=str, default = 'Adam', 
                     help='optimizer to use', choices=['SGD', 'Adam'])
 parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
-### SGD Scheduler params
-parser.add_argument('--lrStep', type=int, default = 5, 
-                    help='no. step before LR decay')
-parser.add_argument('--lrGamma', type=float, default=0.5, 
-                    help='Decay constant')
 ##Loss
 parser.add_argument('--margin', type=float, default=0.1**0.5, 
                     help='Margin for triplet loss')
@@ -36,7 +31,7 @@ parser.add_argument('--tripletLoss', type=str, default='batchall',
                     help='Type of triplet loss to use. There are three available: naive (random triplet), online triplet mining - hard variation, online triplet mining - semi-hard variation',
                     choices=['naive', 'batchall', 'batchhard'])
 ##NetVLAD
-parser.add_argument('--n_vocabs', type=int, default=16, 
+parser.add_argument('--n_vocabs', type=int, default=32, 
                     help='no. netvlad vocabulary')
 
 #Training Arguments 
@@ -45,18 +40,16 @@ parser.add_argument('--mode', type=str, default='train',
                     help='Traning mode or Testing(inference) mode', 
                     choices=['train', 'test'],
                     required=True)
-parser.add_argument('--dataPath', type=str, default='', 
-                    help='Path of dataset',
-                  )
-parser.add_argument('--valRatio', type=float, default=0.2, 
-                    help='Ratio of validation data')
+parser.add_argument('--trainPath', type=str, default='', 
+                    help='Path of training set')
+parser.add_argument('--valPath', type=str, default='', 
+                    help='Path of validation set')
 parser.add_argument('--savePath', type=str, default='', 
                     help='Path to save checkpoint to')
 parser.add_argument('--loadPath', type=str, default='', 
                     help='Path to load checkpoint from - used for resume or testing')
 parser.add_argument('--oldLoss', type = str2bool, nargs = '?', default= True,
-                    help='If true, resume training with stored val and train loss.\n You should set this to false when switching loss function'
-                    )
+                    help='If true, resume training with stored val and train loss.\n You should set this to false when switching loss function')
 parser.add_argument('--saveEvery', type=int, default=25, 
                     help='no. epoch before a save is created')
 
@@ -67,8 +60,6 @@ parser.add_argument('--queryPath', type=str, default='',
                     help='Path to query folder')
 parser.add_argument('--outPath', type=str, default='', 
                     help="Path where to store: database's netvlads, query's netvlads and retrieval results")
-# parser.add_argument('--plotRetrieval', type=bool, default=False,
-#                     help='Whether or not to plot out retrieval results (currently have some problem with notebook)')
 
 if __name__ == "__main__":
   opt = parser.parse_args()

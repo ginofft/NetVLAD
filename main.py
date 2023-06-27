@@ -76,7 +76,7 @@ if __name__ == "__main__":
   if cuda:
     device =  torch.device("cuda")
   else:
-    raise Exception("No GPU found, please get one")
+    print("No GPU found, please get one")
   #Setup model
   if opt.loadPath:
     encoder = models.vgg16(weights=None)

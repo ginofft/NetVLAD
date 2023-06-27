@@ -100,7 +100,7 @@ class OnlineTripletSampler(torch.utils.data.BatchSampler):
     if self.drop_last:
       return len(self.data_source)//self.P
     else:
-      return (len(self. data_source)+self.batch_size -1)//self.P
+      return (len(self.data_source)+self.batch_size -1)//self.P
   
   def _create_pid2imgs(self, data_source):
     ''' Create a label mapping between index and label from a dataset

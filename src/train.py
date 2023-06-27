@@ -43,15 +43,13 @@ def train(device,
     #Logs
     if batch_id % 50 == 0  or n_batches <= 10:
       print('Epoch[{}]({}/{}): Loss: {:.4f}'.format(epoch, batch_id,
-                                                        n_batches, batch_loss))
+                                                    n_batches, batch_loss),
+                                                    flush=True)
     del batch_loss
   avg_loss = epoch_loss / n_batches
   print('---> Epoch {} compledted: Train Avg. Loss: {:.4f}'.format(epoch, avg_loss),
-        flush = True)
+      flush = True)
   
-  #Cleaning up
-  # print('Allocated: ', torch.cuda.memory_allocated())
-  # print('Cached: ', torch.cuda.memory_reserved())
   del sampler, dataloader
   torch.cuda.empty_cache() #clear GPU RAM
   
@@ -90,7 +88,7 @@ def validate(device,
       del imgs, labels, embeddings, netvlads
       del loss, batch_loss
       avg_loss = epoch_loss / n_batches
-  print('----> Validation loss: {:.4f}'.format(avg_loss))
+  print('----> Validation loss: {:.4f}'.format(avg_loss), flush=True)
 
   del sampler, dataloader
   torch.cuda.empty_cache()

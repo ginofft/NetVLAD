@@ -45,17 +45,17 @@ parser.add_argument('--mode', type=str, default='train',
                     help='Traning mode or Testing(inference) mode', 
                     choices=['train', 'test'],
                     required=True)
-parser.add_argument('--trainPath', type=str, default='', 
-                    help='Path of training set',
+parser.add_argument('--dataPath', type=str, default='', 
+                    help='Path of dataset',
                   )
-parser.add_argument('--validationPath', type=str, default='', 
-                    help='Path of validation set')
+parser.add_argument('--valRatio', type=float, default=0.2, 
+                    help='Ratio of validation data')
 parser.add_argument('--savePath', type=str, default='', 
                     help='Path to save checkpoint to')
 parser.add_argument('--loadPath', type=str, default='', 
                     help='Path to load checkpoint from - used for resume or testing')
 parser.add_argument('--oldLoss', type = str2bool, nargs = '?', default= True,
-                    help='If true, resume training with stored val and train loss; Else, set val and train loss equal 1.\n You should set this to false when switching loss function'
+                    help='If true, resume training with stored val and train loss.\n You should set this to false when switching loss function'
                     )
 parser.add_argument('--saveEvery', type=int, default=25, 
                     help='no. epoch before a save is created')
@@ -82,32 +82,28 @@ if __name__ == "__main__":
     encoder = models.vgg16(weights=None)
   else:
     encoder = models.vgg16(weights=VGG16_Weights.DEFAULT)
-
-  encoder_k = 512 ##TODO
   layers = list(encoder.features.children())[:-2]
-
+  encoder_k = 512 ## 
   model = nn.Module()
   encoder = nn.Sequential(*layers)
   model.add_module('encoder', encoder)
-
   net_vlad = NetVLADLayer(n_vocabs = opt.n_vocabs, k = encoder_k)
   model.add_module('netvlad', net_vlad)
-
   model = model.to(device)
 
   if opt.mode.lower() == 'train':
     startEpoch = 0
-    val_loss = 1
-    train_loss = 1
+    val_loss = float('inf')
+    train_loss = float('inf')
 
-    if opt.trainPath:
-      train_set = OnlineTripletImageDataset(Path(opt.trainPath))
+    if opt.dataPath:
+      dataset = OnlineTripletImageDataset(Path(opt.dataPath))
     else:
-      raise Exception("Please provide a trainset using --trainPath")
-    if opt.validationPath:
-      val_set = OnlineTripletImageDataset(Path(opt.validationPath))
-    else:
-      print('No validation set found, you can set a validation set using --validationPath')
+      raise Exception("Please provide a trainset using --dataPath")
+    
+    valSize = int(opt.valRatio * len(dataset))
+    trainSize = len(dataset) - valSize
+    trainSet, valSet = torch.utils.data.random_split(dataset, [trainSize, valSize])
 
     if opt.tripletLoss.lower() == 'batchhard':
       criterion = OnlineTripletLoss(margin = opt.margin, hard=True).to(device)
@@ -115,6 +111,7 @@ if __name__ == "__main__":
       criterion = OnlineTripletLoss(margin = opt.margin, hard=False).to(device)
     elif opt.tripletLoss.lower() == 'naive':
       raise Exception('naive triplet is not implemented yet\n(cause im lazy, deal with it)')
+    
     if opt.optim.lower() =='adam':
       optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), 
                              lr = opt.lr)
@@ -127,32 +124,19 @@ if __name__ == "__main__":
                                                         model, 
                                                         optimizer)
     if opt.oldLoss == False: #condition for when you switch loss function
-      train_loss = 1
-      val_loss = 1  
-    
+      val_loss = float('inf')
+      train_loss = float('inf')
     
     for epoch in range(startEpoch+1, opt.nEpochs+1):
       # train & validate
       epoch_train_loss = train(device, model, epoch,
-                            train_set, opt.P, opt.K,
+                            trainSet, opt.P, opt.K,
                             criterion, optimizer)
-      if opt.validationPath:
-        epoch_val_loss = validate(device, model, 
-                                  val_set, opt.P, opt.K,
-                                  criterion)
-      else:
-        epoch_val_loss = 1
-      #saving stuff
-      if (epoch_train_loss < train_loss): #lowest loss on train set
-        train_loss = epoch_train_loss
-        save_checkpoint({
-            'epoch': epoch,
-            'train_loss': epoch_train_loss,
-            'val_loss': epoch_val_loss,
-            'model': model.state_dict(),
-            'optimizer': optimizer.state_dict(),
-        }, Path(opt.savePath), 'best_train.pth.tar')
+      epoch_val_loss = validate(device, model, 
+                                valSet, opt.P, opt.K,
+                                criterion)
 
+      #saving stuff
       if (epoch_val_loss < val_loss): #lowest loss on val set
         val_loss = epoch_val_loss
         save_checkpoint({

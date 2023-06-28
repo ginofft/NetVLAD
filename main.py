@@ -40,9 +40,9 @@ parser.add_argument('--mode', type=str, default='train',
                     help='Traning mode or Testing(inference) mode', 
                     choices=['train', 'test'],
                     required=True)
-parser.add_argument('--trainPath', type=str, default='', 
+parser.add_argument('--trainPath', type=str, default=None, 
                     help='Path of training set')
-parser.add_argument('--valPath', type=str, default='', 
+parser.add_argument('--valPath', type=str, default=None, 
                     help='Path of validation set')
 parser.add_argument('--savePath', type=str, default='', 
                     help='Path to save checkpoint to')
@@ -65,9 +65,11 @@ if __name__ == "__main__":
   opt = parser.parse_args()
   cuda = torch.cuda.is_available()
   if cuda:
-    device =  torch.device("cuda")
+    print("GPU found, runing on GPU")
+    device = torch.device("cuda")
   else:
-    print("No GPU found, please get one")
+    print("No GPU found, running on CPU")
+    device = torch.device("cpu")
   #Setup model
   if opt.loadPath:
     encoder = models.vgg16(weights=None)

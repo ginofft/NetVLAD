@@ -7,7 +7,7 @@ from typing import Optional
 import torch
 import torch.nn as nn
 from torchvision import models
-from netvlad import NetVLADLayer
+from .netvlad import NetVLADLayer
 import argparse
 
 ENCODER_MAPPING = {

@@ -1,5 +1,6 @@
 import torch
 from .sampler import OnlineTripletSampler
+from tqdm import tqdm
 
 def train(device, 
         model, 
@@ -21,7 +22,7 @@ def train(device,
   epoch_loss = 0
   start_iter = 1
   model.train()
-  for batch_id, (imgs, labels) in enumerate(dataloader, start_iter):
+  for batch_id, (imgs, labels) in enumerate(tqdm(dataloader), start_iter):
     #Compute netvlads embedding
     imgs, labels = imgs.to(device), labels.to(device)
     embeddings = model.encoder(imgs)
@@ -72,7 +73,7 @@ def validate(device,
   epoch_loss = 0
   model.eval()
   with torch.no_grad():     
-    for batch_id, (imgs, labels) in enumerate(dataloader):
+    for batch_id, (imgs, labels) in enumerate(tqdm(dataloader)):
       #Compute netvlads embedding
       imgs, labels = imgs.to(device), labels.to(device)
       embeddings = model.encoder(imgs)

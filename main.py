@@ -9,7 +9,7 @@ from torchvision.models import VGG16_Weights
 from src.netvlad import NetVLADLayer
 from src.dataset import OnlineTripletImageDataset, ImageDataset
 from src.loss import OnlineTripletLoss
-from src.utils import save_checkpoint, load_checkpoint, plot_retrieval_images, str2bool
+from src.utils import save_checkpoint, load_checkpoint, plot_retrieval_images, str2bool, construct_model
 from src.train import train, validate
 from src.query import query, calculate_netvlads
 
@@ -30,7 +30,10 @@ parser.add_argument('--margin', type=float, default=0.1**0.5,
 parser.add_argument('--tripletLoss', type=str, default='batchall', 
                     help='Type of triplet loss to use. There are three available: naive (random triplet), online triplet mining - hard variation, online triplet mining - semi-hard variation',
                     choices=['naive', 'batchall', 'batchhard'])
-##NetVLAD
+##Model
+parser.add_argument('--encoder', type=str, default='VGG16',
+                    choices=['VGG13','VGG16','VGG19',
+                            'Resnet18','Resnet34','Resnet50','Resnet101','Resnet152'])
 parser.add_argument('--n_vocabs', type=int, default=32, 
                     help='no. netvlad vocabulary')
 
@@ -48,8 +51,8 @@ parser.add_argument('--savePath', type=str, default='',
                     help='Path to save checkpoint to')
 parser.add_argument('--loadPath', type=str, default='', 
                     help='Path to load checkpoint from - used for resume or testing')
-parser.add_argument('--oldLoss', type = str2bool, nargs = '?', default= True,
-                    help='If true, resume training with stored val and train loss.\n You should set this to false when switching loss function')
+parser.add_argument('--resetLoss', type = str2bool, nargs = '?', default= False,
+                    help='Default is False - resume training with stored val and train loss.\n You should set this to True when switching loss function')
 parser.add_argument('--saveEvery', type=int, default=25, 
                     help='no. epoch before a save is created')
 
@@ -70,18 +73,12 @@ if __name__ == "__main__":
   else:
     print("No GPU found, running on CPU")
     device = torch.device("cpu")
+  
   #Setup model
   if opt.loadPath:
-    encoder = models.vgg16(weights=None)
+    model = construct_model(opt.encoder, opt.n_vocabs, use_pretrained_weight= False)
   else:
-    encoder = models.vgg16(weights=VGG16_Weights.DEFAULT)
-  layers = list(encoder.features.children())[:-2]
-  encoder_k = 512 ## 
-  model = nn.Module()
-  encoder = nn.Sequential(*layers)
-  model.add_module('encoder', encoder)
-  net_vlad = NetVLADLayer(n_vocabs = opt.n_vocabs, k = encoder_k)
-  model.add_module('netvlad', net_vlad)
+    model = construct_model(opt.encoder, opt.n_vocabs, use_pretrained_weight= True)
   model = model.to(device)
 
   if opt.mode.lower() == 'train':
@@ -93,7 +90,6 @@ if __name__ == "__main__":
       trainSet = OnlineTripletImageDataset(Path(opt.trainPath))
     else:
       raise Exception("Please provide a trainset using --trainPath")
-    
     if opt.valPath:
       valSet = OnlineTripletImageDataset(Path(opt.valPath))
     else:
@@ -117,7 +113,7 @@ if __name__ == "__main__":
                                                         device,
                                                         model, 
                                                         optimizer)
-    if opt.oldLoss == False: #condition for when you switch loss function
+    if opt.resetLoss == True: #condition for when you switch loss function
       val_loss = float('inf')
       train_loss = float('inf')
     

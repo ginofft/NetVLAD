@@ -5,7 +5,21 @@ from PIL import Image
 import h5py
 from typing import Optional
 import torch
+import torch.nn as nn
+from torchvision import models
+from netvlad import NetVLADLayer
 import argparse
+
+ENCODER_MAPPING = {
+    'VGG13': {'model': models.vgg13, 'pretrained_weight' : models.VGG13_Weights.IMAGENET1K_V1, 'output_channel_size' : 512},
+    'VGG16': {'model': models.vgg16, 'pretrained_weight' : models.VGG16_Weights.IMAGENET1K_V1, 'output_channel_size' : 512},
+    'VGG19': {'model': models.vgg19, 'pretrained_weight' : models.VGG19_Weights.IMAGENET1K_V1, 'output_channel_size' : 512},
+    'Resnet18': {'model': models.resnet18, 'pretrained_weight' : models.ResNet18_Weights.IMAGENET1K_V1, 'output_channel_size' : 512},
+    'Resnet34': {'model': models.resnet34, 'pretrained_weight' : models.ResNet34_Weights.IMAGENET1K_V1, 'output_channel_size' : 512},
+    'Resnet50': {'model': models.resnet50, 'pretrained_weight' : models.ResNet50_Weights.IMAGENET1K_V1, 'output_channel_size' : 2048},
+    'Resnet101': {'model': models.resnet101, 'pretrained_weight' : models.ResNet101_Weights.IMAGENET1K_V1, 'output_channel_size' : 2048},
+    'Resnet152': {'model': models.resnet152, 'pretrained_weight' : models.ResNet152_Weights.IMAGENET1K_V1, 'output_channel_size' : 2048},
+}
 
 def plot_images(imgs, titles=None, cmaps='gray', dpi=100, pad=.5,
                 adaptive=True):
@@ -102,3 +116,19 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected')
     
+def construct_model(architect: str, n_vocabs: int, use_pretrained_weight = True) -> torch.nn.Module:
+    architect_dict = ENCODER_MAPPING[architect]
+    if use_pretrained_weight:
+        encoder = architect_dict['model'](weights = architect_dict['pretrained_weight'])
+    else:
+        encoder = architect_dict['model'](weights = None)
+
+    layers = list(encoder.children())[:-2]
+    encoder = nn.Sequential(*layers)
+
+    encoder_k = architect_dict['output_channel_size']
+    net_vlad = NetVLADLayer(n_vocabs = n_vocabs, k = encoder_k)
+    model = nn.Module()
+    model.add_module('encoder', encoder)
+    model.add_module('netvlad', net_vlad)
+    return model

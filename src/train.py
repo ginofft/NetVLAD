@@ -72,6 +72,7 @@ def validate(device,
   n_batches = len(dataloader)
   
   epoch_loss = 0
+  accuracy = 0
   model.eval()
   with torch.no_grad():     
     for batch_id, (imgs, labels) in enumerate(tqdm(dataloader)):
@@ -96,13 +97,14 @@ def validate(device,
         for index in row[1:K+1]:
           if labels[index] == base_label:
             accuracy_vector[row_index] += 1
-      accuracy = torch.mean(accuracy_vector/K)
+      accuracy += torch.mean(accuracy_vector/K)
 
       #delete stuff to save RAM
       del imgs, labels, embeddings, netvlads
       del loss, batch_loss
       avg_loss = epoch_loss / n_batches
-    print('----> Validation Loss/Accuracy: {:.4f} / {:.4f}'.format(avg_loss, accuracy*100), flush=True)
+      accuracy = 100* (accuracy / n_batches)
+    print('----> Validation Loss/Accuracy: {:.4f} / {:.4f}'.format(avg_loss, accuracy), flush=True)
 
   del sampler, dataloader
   torch.cuda.empty_cache()

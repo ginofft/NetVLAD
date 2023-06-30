@@ -15,7 +15,6 @@ def train(device,
   dataloader = torch.utils.data.DataLoader(
       train_set, 
       batch_sampler = sampler, 
-      num_workers = 2,
       pin_memory = True
   )
   n_batches = len(dataloader)
@@ -66,7 +65,6 @@ def validate(device,
   dataloader = torch.utils.data.DataLoader(
       val_set, 
       batch_sampler = sampler, 
-      num_workers = 2,
       pin_memory = True
   )
   n_batches = len(dataloader)

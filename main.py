@@ -110,7 +110,7 @@ if __name__ == "__main__":
       pass #TODO SGD optimizer
 
     if opt.loadPath: #loading stuff
-      startEpoch, train_loss, val_loss = load_checkpoint(Path(opt.loadPath),
+      startEpoch, train_loss, val_loss, accuracy = load_checkpoint(Path(opt.loadPath),
                                                         device,
                                                         model, 
                                                         optimizer)

@@ -92,9 +92,9 @@ def validate(device,
       sorted_indices = np.argsort(similarity_matrix, axis=1)
       for row_index,row in enumerate(sorted_indices):
         row = row[::-1]
-        base_label = row[0]
+        base_label = labels[row[0]]
         for index in row[1:K+1]:
-          if index == base_label:
+          if labels[index] == base_label:
             accuracy_vector[row_index] += 1
       accuracy = torch.mean(accuracy_vector/K)
 

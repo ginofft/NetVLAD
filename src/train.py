@@ -91,6 +91,7 @@ def validate(device,
       similarity_matrix = np.einsum('id, jd -> ij', netvlads, netvlads)
       sorted_indices = np.argsort(similarity_matrix, axis=1)
       for row_index,row in enumerate(sorted_indices):
+        row = row[::-1]
         base_label = row[0]
         for index in row[1:K+1]:
           if index == base_label:

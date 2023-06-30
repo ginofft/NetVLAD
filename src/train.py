@@ -79,7 +79,14 @@ def validate(device,
       imgs, labels = imgs.to(device), labels.to(device)
       embeddings = model.encoder(imgs)
       netvlads = model.netvlad(embeddings)
+
+      #Loss & Backprop
+      loss = criterion(netvlads, labels).to(device)
       
+      batch_loss = loss.item()
+      epoch_loss += batch_loss
+      
+      netvlads = netvlads.cpu()
       accuracy_vector = torch.zeros(P)
       similarity_matrix = np.einsum('id, jd -> ij', netvlads, netvlads)
       sorted_indices = np.argsort(similarity_matrix, axis=1)
@@ -90,12 +97,6 @@ def validate(device,
             accuracy_vector[row_index] += 1
       accuracy = torch.mean(accuracy_vector/K)
 
-      #Loss & Backprop
-      loss = criterion(netvlads, labels).to(device)
-      
-      batch_loss = loss.item()
-      epoch_loss += batch_loss
-      
       #delete stuff to save RAM
       del imgs, labels, embeddings, netvlads
       del loss, batch_loss

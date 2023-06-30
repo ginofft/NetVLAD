@@ -98,13 +98,13 @@ def validate(device,
           if labels[index] == base_label:
             accuracy_vector[row_index] += 1
       accuracy += torch.mean(accuracy_vector/K)
-
       #delete stuff to save RAM
       del imgs, labels, embeddings, netvlads
       del loss, batch_loss
-      avg_loss = epoch_loss / n_batches
-      accuracy = 100* (accuracy / n_batches)
-    print('----> Validation Loss/Accuracy: {:.4f} / {:.4f}'.format(avg_loss, accuracy), flush=True)
+    
+  avg_loss = epoch_loss / n_batches
+  accuracy = 100* (accuracy / n_batches)
+  print('----> Validation Loss/Accuracy: {:.4f} / {:.4f}'.format(avg_loss, accuracy), flush=True)
 
   del sampler, dataloader
   torch.cuda.empty_cache()

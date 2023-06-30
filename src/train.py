@@ -1,5 +1,6 @@
 import torch
 from .sampler import OnlineTripletSampler
+import numpy as np
 from tqdm import tqdm
 
 def train(device, 
@@ -78,6 +79,16 @@ def validate(device,
       imgs, labels = imgs.to(device), labels.to(device)
       embeddings = model.encoder(imgs)
       netvlads = model.netvlad(embeddings)
+      
+      accuracy_vector = torch.zeros(P)
+      similarity_matrix = np.einsum('id, jd -> ij', netvlads, netvlads)
+      sorted_indices = np.argsort(similarity_matrix, axis=1)
+      for row_index,row in enumerate(sorted_indices):
+        base_label = row[0]
+        for index in row[1:K+1]:
+          if index == base_label:
+            accuracy_vector[row_index] += 1
+      accuracy = torch.mean(accuracy_vector/K)
 
       #Loss & Backprop
       loss = criterion(netvlads, labels).to(device)
@@ -90,7 +101,8 @@ def validate(device,
       del loss, batch_loss
       avg_loss = epoch_loss / n_batches
   print('----> Validation loss: {:.4f}'.format(avg_loss), flush=True)
+  print('\n----> Retrieval Accuracy: {:.4f}'.format(accuracy*100), flush=True)
 
   del sampler, dataloader
   torch.cuda.empty_cache()
-  return avg_loss
+  return avg_loss, accuracy

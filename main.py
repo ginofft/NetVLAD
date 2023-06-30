@@ -85,6 +85,7 @@ if __name__ == "__main__":
     startEpoch = 0
     val_loss = float('inf')
     train_loss = float('inf')
+    accuracy = 0
 
     if opt.trainPath:
       trainSet = OnlineTripletImageDataset(Path(opt.trainPath))
@@ -116,35 +117,31 @@ if __name__ == "__main__":
     if opt.resetLoss == True: #condition for when you switch loss function
       val_loss = float('inf')
       train_loss = float('inf')
+      accuracy = 0
     
     for epoch in range(startEpoch+1, opt.nEpochs+1):
       # train & validate
       epoch_train_loss = train(device, model, epoch,
                             trainSet, opt.P, opt.K,
                             criterion, optimizer)
-      epoch_val_loss = validate(device, model, 
+      epoch_val_loss, epoch_accuracy = validate(device, model, 
                                 valSet, opt.P, opt.K,
                                 criterion)
 
+      state_dict = {
+            'epoch': epoch,
+            'train_loss': epoch_train_loss,
+            'val_loss': epoch_val_loss,
+            'accuracy': epoch_accuracy,
+            'model': model.state_dict(),
+            'optimizer': optimizer.state_dict(),
+        }
       #saving stuff
-      if (epoch_val_loss < val_loss): #lowest loss on val set
-        val_loss = epoch_val_loss
-        save_checkpoint({
-            'epoch': epoch,
-            'train_loss': epoch_train_loss,
-            'val_loss': epoch_val_loss,
-            'model': model.state_dict(),
-            'optimizer': optimizer.state_dict(),
-        }, Path(opt.savePath), 'best.pth.tar')
-        
+      if (epoch_accuracy > accuracy): #lowest loss on val set
+        accuracy = epoch_accuracy
+        save_checkpoint(state_dict, Path(opt.savePath), 'best.pth.tar')
       if (epoch % opt.saveEvery) == 0: #save every epoch
-        save_checkpoint({
-            'epoch': epoch,
-            'train_loss': epoch_train_loss,
-            'val_loss': epoch_val_loss,
-            'model': model.state_dict(),
-            'optimizer': optimizer.state_dict(),
-        }, Path(opt.savePath), 'epoch{}.pth.tar'.format(epoch))      
+        save_checkpoint(state_dict, Path(opt.savePath), 'epoch{}.pth.tar'.format(epoch))      
   else:  
     if opt.loadPath: #loading stuff
       startEpoch, train_loss, val_loss = load_checkpoint(Path(opt.loadPath), 

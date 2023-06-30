@@ -96,6 +96,7 @@ def load_checkpoint(path, device, model, optimizer = None):
   epoch = state['epoch']
   train_loss = state['train_loss']
   val_loss = state['val_loss']
+  #accuracy = state['accuracy']
 
   model.load_state_dict(state['model'])
   model = model.to(device)
@@ -104,6 +105,8 @@ def load_checkpoint(path, device, model, optimizer = None):
   print("=> loaded checkpoint '{}' (epoch {})".format(True, epoch))
   print("Checkpoint's train loss is: {:.4f}".format(train_loss))
   print("Checkpoint's validation loss is: {:.4f}".format(val_loss))
+  #print("Checkpoint's validation accuracy is: {:.4f}".format(accuracy))
+  #return epoch, train_loss, val_loss, accuracy
   return epoch, train_loss, val_loss
   
 def str2bool(v):

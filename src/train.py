@@ -102,8 +102,7 @@ def validate(device,
       del imgs, labels, embeddings, netvlads
       del loss, batch_loss
       avg_loss = epoch_loss / n_batches
-  print('----> Validation loss: {:.4f}'.format(avg_loss), flush=True)
-  print('\n----> Retrieval Accuracy: {:.4f}'.format(accuracy*100), flush=True)
+  print('----> Validation Loss/Accuracy: {:.4f} / {:.4f}'.format(avg_loss, accuracy*100), flush=True)
 
   del sampler, dataloader
   torch.cuda.empty_cache()

@@ -87,7 +87,7 @@ def validate(device,
       epoch_loss += batch_loss
       
       netvlads = netvlads.cpu()
-      accuracy_vector = torch.zeros(P)
+      accuracy_vector = torch.zeros(P*K)
       similarity_matrix = np.einsum('id, jd -> ij', netvlads, netvlads)
       sorted_indices = np.argsort(similarity_matrix, axis=1)
       for row_index,row in enumerate(sorted_indices):

@@ -23,7 +23,7 @@ def train(device,
   epoch_loss = 0
   start_iter = 1
   model.train()
-  for batch_id, (imgs, labels) in tqdm(enumerate(dataloader, start_iter), total=len(dataloader)):
+  for (imgs, labels) in tqdm(dataloader):
     #Compute netvlads embedding
     imgs, labels = imgs.to(device), labels.to(device)
     embeddings = model.encoder(imgs)
@@ -67,7 +67,7 @@ def validate(device,
   accuracy = 0
   model.eval()
   with torch.no_grad():     
-    for batch_id, (imgs, labels) in tqdm(enumerate(dataloader), total=len(dataloader)):
+    for (imgs, labels) in tqdm(dataloader):
       #Compute netvlads embedding
       imgs, labels = imgs.to(device), labels.to(device)
       embeddings = model.encoder(imgs)

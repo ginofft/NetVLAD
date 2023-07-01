@@ -36,9 +36,6 @@ def train(device,
 
     epoch_loss += loss.item()
     
-    #delete stuff to save RAM
-    del imgs, labels, embeddings, netvlads
-    del loss
   avg_loss = epoch_loss / n_batches
   print('---> Epoch {} compledted: Train Avg. Loss: {:.4f}'.format(epoch, avg_loss),
       flush = True)
@@ -89,9 +86,6 @@ def validate(device,
           if labels[index] == base_label:
             accuracy_vector[row_index] += 1
       accuracy += torch.mean(accuracy_vector/K)
-      #delete stuff to save RAM
-      del imgs, labels, embeddings, netvlads
-      del loss, batch_loss
     
   avg_loss = epoch_loss / n_batches
   accuracy = 100* (accuracy / n_batches)

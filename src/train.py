@@ -35,19 +35,11 @@ def train(device,
     loss.backward()
     optimizer.step()
 
-    batch_loss = loss.item()
-    epoch_loss += batch_loss
+    epoch_loss += loss.item()
     
     #delete stuff to save RAM
     del imgs, labels, embeddings, netvlads
     del loss
-
-    #Logs
-    if batch_id % 50 == 0  or n_batches <= 10:
-      print('Epoch[{}]({}/{}): Loss: {:.4f}'.format(epoch, batch_id,
-                                                    n_batches, batch_loss),
-                                                    flush=True)
-    del batch_loss
   avg_loss = epoch_loss / n_batches
   print('---> Epoch {} compledted: Train Avg. Loss: {:.4f}'.format(epoch, avg_loss),
       flush = True)

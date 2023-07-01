@@ -75,7 +75,7 @@ def validate(device,
   accuracy = 0
   model.eval()
   with torch.no_grad():     
-    for batch_id, (imgs, labels) in enumerate(tqdm(dataloader)):
+    for batch_id, (imgs, labels) in enumerate(dataloader):
       #Compute netvlads embedding
       imgs, labels = imgs.to(device), labels.to(device)
       embeddings = model.encoder(imgs)

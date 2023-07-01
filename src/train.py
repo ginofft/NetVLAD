@@ -15,6 +15,7 @@ def train(device,
   dataloader = torch.utils.data.DataLoader(
       train_set, 
       batch_sampler = sampler, 
+      num_workers = 2,
       pin_memory = True
   )
   n_batches = len(dataloader)
@@ -64,7 +65,8 @@ def validate(device,
   sampler = OnlineTripletSampler(P=P, K=K, data_source = val_set, drop_last = True)
   dataloader = torch.utils.data.DataLoader(
       val_set, 
-      batch_sampler = sampler, 
+      batch_sampler = sampler,
+      num_workers = 2,
       pin_memory = True
   )
   n_batches = len(dataloader)

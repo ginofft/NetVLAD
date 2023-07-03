@@ -92,7 +92,7 @@ def save_checkpoint(state, path:Path, filename='lastest.pth.tar'):
   torch.save(state, out_path)
 
 def load_checkpoint(path, device, model, optimizer = None):
-  state = torch.load(path, map_location='cpu')
+  state = torch.load(path, map_location=device)
   epoch = state['epoch']
   train_loss = state['train_loss']
   val_loss = state['val_loss']

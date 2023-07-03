@@ -55,7 +55,6 @@ class ImageDataset(torch.utils.data.Dataset):
     
   def __len__(self):
       return len(self.names)
-
 class TripletDataset(torch.utils.data.Dataset):
     '''This class load data for naive triplet loss. 
     Concretely, for an anchor image, it would load:
@@ -92,8 +91,8 @@ class TripletDataset(torch.utils.data.Dataset):
       'interpolation': 'cv2_area'
     }
     default_preprocessing = transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(256),
+        transforms.Resize(224),
+        transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize(mean = [0.485, 0.456, 0.406],
                              std = [0.229, 0.224, 0.225]) 
@@ -160,7 +159,6 @@ class TripletDataset(torch.utils.data.Dataset):
     
     def __len__(self):
         return len(self.names)
-
 #use this with dataloader for naive triplet   
 def collate_fn(batch):
     """Creates mini-batch tensors from the list of tuples (query, positive, negatives).
@@ -209,8 +207,8 @@ class OnlineTripletImageDataset(torch.utils.data.Dataset):
     'interpolation': 'cv2_area'
   }
   default_preprocessing = transforms.Compose([
-      transforms.Resize(256),
-      transforms.CenterCrop(256),
+      transforms.Resize(224),
+      transforms.CenterCrop(224),
       transforms.ToTensor(),
       transforms.Normalize(mean = [0.485, 0.456, 0.406],
                             std = [0.229, 0.224, 0.225]) 

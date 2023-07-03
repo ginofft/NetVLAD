@@ -69,11 +69,9 @@ def validate(device,
       embeddings = model.encoder(imgs)
       netvlads = model.netvlad(embeddings)
 
-      #Loss & Backprop
+      #Loss
       loss = criterion(netvlads, labels).to(device)
-      
-      batch_loss = loss.item()
-      epoch_loss += batch_loss
+      epoch_loss += loss.item()
       
       netvlads = netvlads.cpu()
       accuracy_vector = torch.zeros(P*K)

@@ -75,7 +75,10 @@ class OnlineTripletSampler(torch.utils.data.BatchSampler):
         for cls in more_class:
           batch_dict[cls] = []
       
-      for cls in batch_dict.keys():
+      for cls in batch_dict.keys():        
+        if len(batch_dict[cls]) > self.K:
+          batch_dict[cls] = batch_dict[cls][:self.K]
+
         if len(batch_dict[cls]) < self.K:
           difference_set = set(self.pid2imgs[cls]).difference(set(batch_dict[cls])) 
           n_more_image = self.K - len(batch_dict[cls])
@@ -93,8 +96,6 @@ class OnlineTripletSampler(torch.utils.data.BatchSampler):
       if len(batch) == self.batch_size:
         yield batch
         batch = []
-      if len(batch) > 1 and not self.drop_last:
-        yield batch
 
   def __len__(self):
     if self.drop_last:

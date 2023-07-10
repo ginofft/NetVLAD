@@ -90,7 +90,7 @@ def query(query_features: Path,
       retrieved_dict[query_name].append(db_name)
     else:
       retrieved_dict[query_name] = [db_name]
-  
+    
   with h5py.File(str(out_path), 'w', libver = 'latest') as f:
     try:
       for k,v in retrieved_dict.items():
@@ -99,7 +99,6 @@ def query(query_features: Path,
       if 'No space left on device' in error.args[0]:
         pass
       raise error
-
 
 def pairs_from_similarity_matrix(sim, n_results):
     """This function create pair of similar indices from a similarity matrix"""

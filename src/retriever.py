@@ -80,8 +80,9 @@ class EmbeddingRetriever:
     
     def _calculate_embedding(self, img_tensor):
         img_tensor = img_tensor.to(self.device)
-        embedding = self.model(img_tensor)
-        return embedding.view(-1).detach().cpu().numpy()
+        embedding = self.model["encoder"](img_tensor)
+        v = self.model["netvlad"](embedding)
+        return v.view(-1).detach().cpu().numpy()
 
     def _calculate_embeddings(self):
         if self.model == None:
